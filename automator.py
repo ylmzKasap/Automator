@@ -100,13 +100,14 @@ def key_to_action(keyToPress, change, insertion):
     return change, insertion
 
 
-def key_to_image_action(key, imageName, change, insertion):
+def key_to_image_action(key, imageName, change, insertion, clickAmount):
     global turn
 
     if insertion == 1:
         commands.insert(turn-1, [])
         commands[turn-1] = ([f"{turn}{keyinfo.keyToTextImage[key]}"])
         commands[turn-1].append(f"{os.getcwd()}\\Pictures\\{imageName}")
+        commands[turn - 1].append(clickAmount)
         for index, i in enumerate(commands):
             commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
         turn = len(commands) + 1
@@ -117,7 +118,7 @@ def key_to_image_action(key, imageName, change, insertion):
         commands.append([])
     commands[turn-1] = ([f"{turn}{keyinfo.keyToTextImage[key]}"])
     commands[turn-1].append(f"{os.getcwd()}\\Pictures\\{imageName}")
-
+    commands[turn - 1].append(clickAmount)
     if change == 1:
         change = 0
         turn = len(commands) + 1
@@ -921,6 +922,79 @@ while True:
         turn += 1
         continue
 
+    elif command == "repeatpattern":
+        os.system("cls")
+        if turn <= 2:
+            os.system("cls")
+            print("\nThere is no pattern behind to repeat.")
+            error = 1
+            if changeInPlace == 1:
+                changeInPlace = 0
+            if insertionInPlace == 1:
+                insertionInPlace = 0
+            turn = len(commands) + 1
+            continue
+        while True:
+            os.system("cls")
+            while True:
+                print("\nAll commands:\n")
+                pprint.pprint(commands)
+                print("\nRepeat all commands starting from which command?")
+                repeatPatternFrom = input()
+                allPossibleCommands = [i+1 for i in range(len(commands[:turn-1]))]
+                try:
+                    repeatPatternFrom = int(repeatPatternFrom)
+                    if repeatPatternFrom not in allPossibleCommands:
+                        os.system("cls")
+                        print(
+                            "\nEnter a valid command number."
+                            + f"\nThere are {len(allPossibleCommands)} commands behind.\n"
+                        )
+                        continue
+                    break
+                except ValueError:
+                    os.system("cls")
+                    print("\nEnter a number.")
+                    continue
+            break
+        while True:
+            print("\nRepeat specified pattern how many times?")
+            repeatCount = input()
+            if repeatCount != "infinite":
+                try:
+                    repeatCount = int(repeatCount)
+                    if repeatCount < 1:
+                        os.system("cls")
+                        print("\nEnter a positive number.")
+                        continue
+                    break
+                except ValueError:
+                    os.system("cls")
+                    print("\nEnter a number or enter 'infinite'.")
+                    continue
+            break
+        if insertionInPlace == 1:
+            commands.insert(turn-1, [])
+            commands[turn-1] = ([f"{turn}-repeatPattern"])
+            commands[turn-1].append(repeatCount)
+            commands[turn - 1].append(repeatPatternFrom)
+            for index, i in enumerate(commands):
+                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn-1] = ([f"{turn}-repeatPattern"])
+        commands[turn-1].append(repeatCount)
+        commands[turn - 1].append(repeatPatternFrom)
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
+        continue
+
     elif command == "mr":
         os.system("cls")
         while True:
@@ -1003,14 +1077,40 @@ while True:
                 ssName = input()
         os.system("cls")
         print("\nWhich command should be used on this image?")
-        print("\n'.': Left click\n'r': Right click\n'd': Double click\n'dt': Drag to\n'c': Move cursor")
+        print(
+            "\n'.': Left click\n'r': Right click\n'd': Double click\n'dt': Drag to\n'c': Move cursor"
+            + "\n'..': Left click if on screen\n'rr': Right click if on screen\n'dd': Double click if on screen"
+            + "\n'cc': Move cursor if on screen"
+        )
         decision = input()
         while decision not in list(keyinfo.keyToTextImage.keys()):
             os.system("cls")
             print("\nThere is no such command. Available commands:")
-            print("\n'.': Left click\n'r': Right click\n'd': Double click\n'dt': Drag to\n'c': Move cursor")
+            print(
+                "\n'.': Left click\n'r': Right click\n'd': Double click\n'dt': Drag to\n'c': Move cursor"
+                + "\n'..': Left click if on screen\n'rr': Right click if on screen\n'dd': Double click if on screen"
+                + "\n'cc': Move cursor if on screen"
+            )
             decision = input()
-        changeInPlace, insertionInPlace = key_to_image_action(decision, ssName, changeInPlace, insertionInPlace)
+        clickCount = 1
+        if decision == "..":
+            os.system("cls")
+            while True:
+                print("\nHow many times should be the action carried out?")
+                clickCount = input()
+                try:
+                    clickCount = int(clickCount)
+                    if clickCount < 1:
+                        os.system("cls")
+                        print("\nEnter a positive number.")
+                        continue
+                    break
+                except ValueError:
+                    os.system("cls")
+                    print("\nEnter a number.")
+                    continue
+        changeInPlace, insertionInPlace = key_to_image_action(
+            decision, ssName, changeInPlace, insertionInPlace, clickCount)
         continue
 
     elif command == "qq":

@@ -21,7 +21,11 @@ keyToTextImage = {
     'c': '-moveCursorImage',
     'd': '-doubleClickImage',
     'r': '-rightClickImage',
-    'dt': '-dragToImage'
+    'dt': '-dragToImage',
+    '..': '-imageClickIfOnScreen',
+    'cc': '-imageMoveCursorIfOnScreen',
+    'dd': '-imageDoubleClickIfOnScreen',
+    'rr': 'imageRightClickIfOnScreen'
     }
 
 hotkeys = {
@@ -54,7 +58,7 @@ allAssignments = [
     '.', 'd', 'r', 'm', 'dt', 'c',
     '..', 'dd', 'rr', 'mm', 'dtt', 'cc',
     'v', 'k', 'hot', 'p', 'max', 'w', 'i',
-    'su', 'sd', 'h', 'hc', 'mr', 'repeat'
+    'su', 'sd', 'h', 'hc', 'mr', 'repeat', 'repeatpattern',
 ]
 
 allAssignmentsExplained = {
@@ -83,7 +87,8 @@ allAssignmentsExplained = {
     'sd': 'Scroll down',
     'h': 'Hold left click for * seconds',
     'hc': 'Hold and click',
-    'repeat': 'Repeat previous command'
+    'repeat': 'Repeat previous command',
+    'repeatpattern': 'Repeat specified pattern'
     }
 
 

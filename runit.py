@@ -208,6 +208,17 @@ def run_commands(actions, aTime):
                 except FileNotFoundError:
                     file_not_found(10, point[1])
 
+        elif '-imageClickIfOnScreen' in point[0]:
+            time.sleep(0.5)
+            try:
+                pyautogui.click(point[1], duration=aTime)
+                for i in range(1, point[2]):
+                    pyautogui.click(duration=0)
+            except TypeError:
+                continue
+            except FileNotFoundError:
+                file_not_found(10, point[1])
+
         elif '-moveCursorImage' in point[0]:
             time.sleep(0.5)
             while True:
@@ -218,6 +229,15 @@ def run_commands(actions, aTime):
                     image_not_found(5)
                 except FileNotFoundError:
                     file_not_found(10, point[1])
+
+        elif '-imageMoveCursorIfOnScreen' in point[0]:
+            time.sleep(0.5)
+            try:
+                pyautogui.moveTo(point[1], duration=aTime)
+            except TypeError:
+                continue
+            except FileNotFoundError:
+                file_not_found(10, point[1])
 
         elif '-doubleClickImage' in point[0]:
             time.sleep(0.5)
@@ -230,6 +250,15 @@ def run_commands(actions, aTime):
                 except FileNotFoundError:
                     file_not_found(10, point[1])
 
+        elif '-imageDoubleClickIfOnScreen' in point[0]:
+            time.sleep(0.5)
+            try:
+                pyautogui.doubleClick(point[1], duration=aTime)
+            except TypeError:
+                continue
+            except FileNotFoundError:
+                file_not_found(10, point[1])
+
         elif '-rightClickImage' in point[0]:
             time.sleep(0.5)
             while True:
@@ -240,6 +269,15 @@ def run_commands(actions, aTime):
                     image_not_found(5)
                 except FileNotFoundError:
                     file_not_found(10, point[1])
+
+        elif 'imageRightClickIfOnScreen' in point[0]:
+            time.sleep(0.5)
+            try:
+                pyautogui.rightClick(point[1], duration=aTime)
+            except TypeError:
+                continue
+            except FileNotFoundError:
+                file_not_found(10, point[1])
 
         elif '-dragToImage' in point[0]:
             time.sleep(0.5)
@@ -326,13 +364,26 @@ def run_commands(actions, aTime):
             pyautogui.move(point[1], point[2], duration=aTime)
 
         elif '-repeatPrevious' in point[0]:
-            if point[1] == 'infinite':
-                while True:
-                    run_commands([actions[index - 1]], point[2])
-            else:
-                for command in range(point[1]):
-                    run_commands([actions[index-1]], point[2])
+            try:
+                if point[1] == 'infinite':
+                    while True:
+                        run_commands([actions[index - 1]], point[2])
+                else:
+                    for command in range(1, point[1]):
+                        run_commands([actions[index-1]], point[2])
+            except pyautogui.FailSafeException:
+                continue
 
+        elif '-repeatPattern' in point[0]:
+            try:
+                if point[1] == 'infinite':
+                    while True:
+                        run_commands(actions[(point[2]-1):index], aTime)
+                else:
+                    for pattern in range(1, point[1]):
+                        run_commands(actions[(point[2]-1):index], aTime)
+            except pyautogui.FailSafeException:
+                continue
         else:
             print(f"\nCould not find {point[0]} in the execution file.")
             input()
