@@ -120,7 +120,7 @@ def process_variable(variableDictionary):
 
 
 def run_commands(actions, aTime):
-    for point in actions:
+    for index, point in enumerate(actions):
         if '-normal_click' in point[0]:
             pyautogui.click(point[1], duration=aTime)
         elif '-click_color' in point[0]:
@@ -322,8 +322,12 @@ def run_commands(actions, aTime):
             pyautogui.click(point[2], duration=aTime)
             pyautogui.keyUp(point[1])
 
-        elif 'moveRelative' in point[0]:
+        elif '-moveRelative' in point[0]:
             pyautogui.move(point[1], point[2], duration=aTime)
+
+        elif '-repeatPrevious' in point[0]:
+            for command in range(point[1]):
+                run_commands([actions[index-1]], point[2])
 
         else:
             print(f"\nCould not find {point[0]} in the execution file.")

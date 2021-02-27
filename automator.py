@@ -23,6 +23,7 @@ allEpisodeNames = []  # List of names for all episodes, to be saved later
 commands = []  # List of commands for CURRENT episode
 turn = 1  # command number for the current episode
 error = 0  # Switches to "1" if there is an error. Prevents os.system("cls").
+recursionError = 0  # Switches to "1" if there is more than 1 subsequent repeat previous command assignments.
 
 commandsRegex = re.compile(r"-.*")
 episodesRegex = re.compile(r"[^\d]+")
@@ -125,6 +126,15 @@ def key_to_image_action(key, imageName, change, insertion):
     return change, insertion
 
 
+def check_recursion(commandsList):
+    for i in range(len(commandsList)):
+        try:
+            if '-repeatPrevious' in commandsList[i][0] and '-repeatPrevious' in commandsList[i+1][0]:
+                return True
+        except IndexError:
+            return False
+
+
 if len(currentProjects) == 0:
     projectName = pyautogui.prompt(
         "Enter a name to start a new project."
@@ -180,9 +190,18 @@ while True:
         print(f"\n{allEpisodeNames[episode-1]}\n")
     except IndexError:
         print(f"\n{episode}. Unnamed Episode")
-
     if len(commands) > 0:
         pprint.pprint(commands)
+
+    if check_recursion(commands):
+        recursionError = 1
+    else:
+        recursionError = 0
+    if recursionError == 1:
+        print(
+            "\nWARNING! There are more than one subsequent repeat assignments."
+            + "\nExecuting these commands will cause a recursion error."
+        )
 
     command = input()
 
@@ -826,6 +845,80 @@ while True:
             commands.append([])
         commands[turn-1] = ([f"{turn}-wait"])
         commands[turn-1].append(waiting)
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
+        continue
+
+    elif command == "repeat":
+        os.system("cls")
+        if len(commands) == 0:
+            os.system("cls")
+            print("\nThere is no command behind to repeat.")
+            continue
+        if turn > 1:
+            if "-repeatPrevious" in commands[turn-2][0]:
+                os.system("cls")
+                print("\nRecursion error. Cannot assign another repetition.")
+                if insertionInPlace == 1:
+                    insertionInPlace = 0
+                    turn = len(commands) + 1
+                continue
+        elif turn <= 1:
+            os.system("cls")
+            print("\nThere is no command behind to repeat.")
+            insertionInPlace = 0
+            turn = len(commands) + 1
+            continue
+        while True:
+            print("\nRepeat previous command how many times?")
+            repeatCount = input()
+            try:
+                repeatCount = int(repeatCount)
+                if repeatCount < 1:
+                    os.system("cls")
+                    print("\nEnter a positive number.")
+                    continue
+                break
+            except ValueError:
+                os.system("cls")
+                print("\nEnter a number.")
+                continue
+        while True:
+            os.system("cls")
+            print(
+                "\nHow long should each iteration of action take?"
+                + f"\nEnter a value in seconds. Default duration is {ACTION_DURATION}."
+            )
+            repeatInterval = input()
+            try:
+                repeatInterval = float(repeatInterval)
+                if repeatInterval < 0:
+                    os.system("cls")
+                    print("\nEnter a positive number or a float value.")
+                    continue
+                break
+            except ValueError:
+                os.system("cls")
+                print("\nEnter a number or a float value.")
+                continue
+        if insertionInPlace == 1:
+            commands.insert(turn-1, [])
+            commands[turn-1] = ([f"{turn}-repeatPrevious"])
+            commands[turn-1].append(repeatCount)
+            commands[turn - 1].append(repeatInterval)
+            for index, i in enumerate(commands):
+                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn-1] = ([f"{turn}-repeatPrevious"])
+        commands[turn-1].append(repeatCount)
+        commands[turn - 1].append(repeatInterval)
         if changeInPlace == 1:
             turn = len(commands) + 1
             changeInPlace = 0

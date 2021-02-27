@@ -1,3 +1,4 @@
+# For assignments which are used in key_to_action function
 keyToText = {
     '.': '-normal_click',
     '..': '-click_color',
@@ -13,7 +14,6 @@ keyToText = {
     'dtt': '-dragTo_color',
     'su': '-scrollUp',
     'sd': '-scrollDown',
-    'mr': '-moveRelative',
     }
 
 keyToTextImage = {
@@ -54,7 +54,7 @@ allAssignments = [
     '.', 'd', 'r', 'm', 'dt', 'c',
     '..', 'dd', 'rr', 'mm', 'dtt', 'cc',
     'v', 'k', 'hot', 'p', 'max', 'w', 'i',
-    'su', 'sd', 'h', 'hc', 'mr'
+    'su', 'sd', 'h', 'hc', 'mr', 'repeat'
 ]
 
 allAssignmentsExplained = {
@@ -66,7 +66,7 @@ allAssignmentsExplained = {
     'dt': 'Click and drag to coordinate',
     'c': 'Move cursor to',
     'mr': 'Move cursor relative to its position',
-    '\nRepeat the last letter to perform the action if the colors match': "",
+    '\nRepeat the last letter to perform the action if both color values match': "",
     'dd': "Double click if the colors match",
 
     '\nKeyboard Commands': "",
@@ -83,6 +83,7 @@ allAssignmentsExplained = {
     'sd': 'Scroll down',
     'h': 'Hold left click for * seconds',
     'hc': 'Hold and click',
+    'repeat': 'Repeat previous command'
     }
 
 
