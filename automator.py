@@ -170,6 +170,7 @@ if (projectPath / saveName).exists():
     allEpisodeNames = savedProject.allEpisodeNamesSave
     commands = copy.deepcopy(allCommands[-1])
     episode = len(allCommands)
+    turn = len(commands) + 1
 else:
     episode = len(allCommands) + 1
 
@@ -854,22 +855,14 @@ while True:
 
     elif command == "repeat":
         os.system("cls")
-        if len(commands) == 0:
+        if turn <= 1:
             os.system("cls")
             print("\nThere is no command behind to repeat.")
-            continue
-        if turn > 1:
-            if "-repeatPrevious" in commands[turn-2][0]:
-                os.system("cls")
-                print("\nRecursion error. Cannot assign another repetition.")
-                if insertionInPlace == 1:
-                    insertionInPlace = 0
-                    turn = len(commands) + 1
-                continue
-        elif turn <= 1:
-            os.system("cls")
-            print("\nThere is no command behind to repeat.")
-            insertionInPlace = 0
+            error = 1
+            if changeInPlace == 1:
+                changeInPlace = 0
+            if insertionInPlace == 1:
+                insertionInPlace = 0
             turn = len(commands) + 1
             continue
         while True:
