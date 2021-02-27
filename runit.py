@@ -326,8 +326,12 @@ def run_commands(actions, aTime):
             pyautogui.move(point[1], point[2], duration=aTime)
 
         elif '-repeatPrevious' in point[0]:
-            for command in range(point[1]):
-                run_commands([actions[index-1]], point[2])
+            if point[1] == 'infinite':
+                while True:
+                    run_commands([actions[index - 1]], point[2])
+            else:
+                for command in range(point[1]):
+                    run_commands([actions[index-1]], point[2])
 
         else:
             print(f"\nCould not find {point[0]} in the execution file.")

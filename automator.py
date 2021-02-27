@@ -868,17 +868,19 @@ while True:
         while True:
             print("\nRepeat previous command how many times?")
             repeatCount = input()
-            try:
-                repeatCount = int(repeatCount)
-                if repeatCount < 1:
+            if repeatCount != 'infinite':
+                try:
+                    repeatCount = int(repeatCount)
+                    if repeatCount < 1:
+                        os.system("cls")
+                        print("\nEnter a positive number.")
+                        continue
+                    break
+                except ValueError:
                     os.system("cls")
-                    print("\nEnter a positive number.")
+                    print("\nEnter a number or enter 'infinite'.")
                     continue
-                break
-            except ValueError:
-                os.system("cls")
-                print("\nEnter a number.")
-                continue
+            break
         while True:
             os.system("cls")
             print(
