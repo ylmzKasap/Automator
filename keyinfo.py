@@ -1,17 +1,23 @@
 # For assignments which are used in key_to_action function
 keyToText = {
-    '.': '-normal_click',
+    '.': '-left_click',
     '..': '-click_color',
+    '...': '-clickColorElsePass',
     'c': '-move_cursor',
     'cc': '-moveCursor_color',
+    'ccc': '-moveCursorColorElsePass',
     'd': '-double_click',
     'dd': '-doubleClick_color',
+    'ddd': '-doubleClickColorElsePass',
     'r': '-right_click',
     'rr': '-rightClick_color',
+    'rrr': '-rightClickElsePass',
     'm': '-middle_click',
     'mm': '-middleClick_color',
+    'mmm': '-middleClickColorElsePass',
     'dt': '-drag_to',
     'dtt': '-dragTo_color',
+    'dttt': '-dragToColorElsePass',
     'su': '-scrollUp',
     'sd': '-scrollDown',
     }
@@ -57,6 +63,7 @@ keyboard = {
 allAssignments = [
     '.', 'd', 'r', 'm', 'dt', 'c',
     '..', 'dd', 'rr', 'mm', 'dtt', 'cc',
+    '...', 'ddd', 'rrr', 'mmm', 'dttt', 'ccc'
     'v', 'k', 'hot', 'p', 'max', 'w', 'i',
     'su', 'sd', 'h', 'hc', 'mr', 'repeat', 'repeatpattern',
 ]
@@ -71,7 +78,8 @@ allAssignmentsExplained = {
     'c': 'Move cursor to',
     'mr': 'Move cursor relative to its position',
     '\nRepeat the last letter to perform the action if both color values match': "",
-    'dd': "Double click if the colors match",
+    'dd': "Double clicks if the colors match, else throws an error and waits.",
+    'ddd': "Double clicks if the colors match, if not, continues like nothing happened.",
 
     '\nKeyboard Commands': "",
     'v': 'Assign a value',

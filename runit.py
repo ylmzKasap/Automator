@@ -121,7 +121,8 @@ def process_variable(variableDictionary):
 
 def run_commands(actions, aTime):
     for index, point in enumerate(actions):
-        if '-normal_click' in point[0]:
+        colorNotFound = 0
+        if '-left_click' in point[0] or '-normal_click' in point[0]:
             pyautogui.click(point[1], duration=aTime)
         elif '-click_color' in point[0]:
             while True:
@@ -131,6 +132,20 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
+        elif '-clickColorElsePass' in point[0]:
+            while True:
+                time.sleep(0.2)
+                try:
+                    if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
+                        pyautogui.click(point[1], duration=aTime)
+                        break
+                    else:
+                        colorNotFound = 1
+                        break
+                except OSError:
+                    continue
+            if colorNotFound == 1:
+                continue
 
         elif '-move_cursor' in point[0]:
             pyautogui.moveTo(point[1], duration=aTime)
@@ -142,6 +157,20 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
+        elif '-moveCursorColorElsePass' in point[0]:
+            time.sleep(0.2)
+            while True:
+                try:
+                    if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
+                        pyautogui.moveTo(point[1], duration=aTime)
+                        break
+                    else:
+                        colorNotFound = 1
+                        break
+                except OSError:
+                    continue
+            if colorNotFound == 1:
+                continue
 
         elif '-double_click' in point[0]:
             pyautogui.doubleClick(point[1], duration=aTime)
@@ -152,8 +181,22 @@ def run_commands(actions, aTime):
                     pyautogui.doubleClick(point[1], duration=aTime)
                     break
                 else:
-
                     incorrect_color(point)
+        elif '-doubleClickColorElsePass' in point[0]:
+            while True:
+                try:
+                    time.sleep(0.2)
+                    if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
+                        pyautogui.doubleClick(point[1], duration=aTime)
+                        break
+                    else:
+                        colorNotFound = 1
+                        break
+                except OSError:
+                    continue
+            if colorNotFound == 1:
+                continue
+
         elif '-right_click' in point[0]:
             pyautogui.rightClick(point[1], duration=aTime)
         elif '-rightClick_color' in point[0]:
@@ -164,6 +207,20 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
+        elif '-rightClickElsePass' in point[0]:
+            while True:
+                try:
+                    time.sleep(0.2)
+                    if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
+                        pyautogui.rightClick(point[1], duration=aTime)
+                        break
+                    else:
+                        colorNotFound = 1
+                        break
+                except OSError:
+                    continue
+            if colorNotFound == 1:
+                continue
 
         elif '-middle_click' in point[0]:
             pyautogui.middleClick(point[1], duration=aTime)
@@ -175,6 +232,20 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
+        elif '-middleClickColorElsePass' in point[0]:
+            while True:
+                try:
+                    time.sleep(0.2)
+                    if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
+                        pyautogui.middleClick(point[1], duration=aTime)
+                        break
+                    else:
+                        colorNotFound = 1
+                        break
+                except OSError:
+                    continue
+            if colorNotFound == 1:
+                continue
 
         elif '-drag_to' in point[0]:
             time.sleep(0.2)
@@ -187,6 +258,20 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
+        elif '-dragToColorElsePass' in point[0]:
+            time.sleep(0.2)
+            while True:
+                try:
+                    if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
+                        pyautogui.dragTo(point[1], duration=aTime)
+                        break
+                    else:
+                        colorNotFound = 1
+                        break
+                except OSError:
+                    continue
+            if colorNotFound == 1:
+                continue
 
         elif 'scrollUp' in point[0]:
             time.sleep(0.5)

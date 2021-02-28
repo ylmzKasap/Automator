@@ -27,6 +27,7 @@ recursionError = 0  # Switches to "1" if there is more than 1 subsequent repeat 
 
 commandsRegex = re.compile(r"-.*")
 episodesRegex = re.compile(r"[^\d]+")
+commandNameRegex = re.compile(r'[a-zA-Z_]+')
 
 originalScreenSize = (pyautogui.size().width, pyautogui.size().height)
 
@@ -42,7 +43,7 @@ def correct_project_name(project_name):
             for character in forbiddenCharacters:
                 if character in project_name:
                     project_name = pyautogui.prompt(
-                        f"Project name cannot include '{i}'. Enter a new name."
+                        f"Project name cannot include '{character}'. Enter a new name."
                         )
                     nameError = 1
                     break
@@ -50,6 +51,7 @@ def correct_project_name(project_name):
                 nameError = 0
                 continue
             break
+        return project_name
     except AttributeError:
         print("\nThe program is terminated as no valid project name has been provided.")
         input()
@@ -140,7 +142,7 @@ if len(currentProjects) == 0:
     projectName = pyautogui.prompt(
         "Enter a name to start a new project."
         )
-    correct_project_name(projectName)
+    projectName = correct_project_name(projectName)
 else:
     projectName = pyautogui.prompt(
         "Choose a project:"
@@ -148,7 +150,7 @@ else:
         + "\n".join(currentProjects)
         + "\n\nYou can create a new project by entering a different name."
         )
-    correct_project_name(projectName)
+    projectName = correct_project_name(projectName)
 
 try:
     projectPath = Path.cwd() / "Projects" / projectName
@@ -1079,8 +1081,8 @@ while True:
         print("\nWhich command should be used on this image?")
         print(
             "\n'.': Left click\n'r': Right click\n'd': Double click\n'dt': Drag to\n'c': Move cursor"
-            + "\n'..': Left click if on screen\n'rr': Right click if on screen\n'dd': Double click if on screen"
-            + "\n'cc': Move cursor if on screen"
+            + "\n'..': Left click else continue\n'rr': Right click else continue"
+            + "\n'dd': Double click else continue\n'cc': Move cursor else continue"
         )
         decision = input()
         while decision not in list(keyinfo.keyToTextImage.keys()):
@@ -1088,8 +1090,8 @@ while True:
             print("\nThere is no such command. Available commands:")
             print(
                 "\n'.': Left click\n'r': Right click\n'd': Double click\n'dt': Drag to\n'c': Move cursor"
-                + "\n'..': Left click if on screen\n'rr': Right click if on screen\n'dd': Double click if on screen"
-                + "\n'cc': Move cursor if on screen"
+                + "\n'..': Left click else continue\n'rr': Right click else continue"
+                + "\n'dd': Double click else continue\n'cc': Move cursor else continue"
             )
             decision = input()
         clickCount = 1
