@@ -92,10 +92,20 @@ def format_commands(command):
         return readableCommands[command[0]].format(f"'{command[1]}'", ', '.join(str(i) for i in command[2]))
 
     elif command[0] == 'repeat_previous':
-        return readableCommands[command[0]] + f" {command[1]} times"
+        if command[1] == "infinite":
+            return readableCommands[command[0]] + f" {command[1]} times"
+        elif command[1] > 1:
+            return readableCommands[command[0]] + f" {command[1]} times"
+        elif command[1] <= 1:
+            return readableCommands[command[0]] + f" {command[1]} time"
 
     elif command[0] == 'repeat_pattern':
-        return readableCommands[command[0]] + f" {command[1]} times, starting from command {command[2]}"
+        if command[1] == "infinite":
+            return readableCommands[command[0]] + f" {command[1]} times, starting from command {command[2]}"
+        elif command[1] > 1:
+            return readableCommands[command[0]] + f" {command[1]} times, starting from command {command[2]}"
+        elif command[1] <= 1:
+            return readableCommands[command[0]] + f" {command[1]} time, starting from command {command[2]}"
 
     elif command[0] == "scroll_up" or command[0] == "scroll_down" or command[0] == "maximize_window":
         return readableCommands[command[0]]
@@ -119,7 +129,10 @@ def format_commands(command):
         return readableCommands[command[0]] + f" '{os.path.basename(command[1])}', else wait"
 
     elif command[0] == "click_image_else_pass":
-        return readableCommands[command[0]] + f" '{os.path.basename(command[1])}' {command[2]} times, else pass"
+        if command[2] > 1:
+            return readableCommands[command[0]] + f" '{os.path.basename(command[1])}' {command[2]} times, else pass"
+        elif command[2] <= 1:
+            return readableCommands[command[0]] + f" '{os.path.basename(command[1])}' {command[2]} time, else pass"
 
     elif command[0] == "cursor_on_image_else_pass" \
             or command[0] == "double_click_image_else_pass" or command[0] == "right_click_image_else_pass":

@@ -134,9 +134,13 @@ def check_recursion(commandsList):
             return False
 
 
-def list_readable_commands(commandsList):
+def print_readable_commands(commandsList):
     for index, command in enumerate(commandsList):
         print(f"{index+1}. {keyinfo.format_commands(command)}")
+
+
+def format_command(command):
+    return keyinfo.format_commands(command)
 
 
 if len(currentProjects) == 0:
@@ -196,7 +200,7 @@ while True:
     except IndexError:
         print(f"\n{episode}. Unnamed Episode")
     if len(commands) > 0:
-        list_readable_commands(commands)
+        print_readable_commands(commands)
 
     if check_recursion(commands):
         recursionError = 1
@@ -225,7 +229,7 @@ while True:
             os.system("cls")
             print(f"\nEpisode {episode}\n")
             if len(commands) > 0:
-                list_readable_commands(commands)
+                print_readable_commands(commands)
             command = input()
             if command != "zzz":
                 break
@@ -281,7 +285,7 @@ while True:
                 print("\nThere is no such command.")
                 notFound = 0
             print("\nAll commands:")
-            list_readable_commands(commands)
+            print_readable_commands(commands)
             print("\nEnter a command number to replace. 'q' cancels the process.")
             allCommandsForReplacement = []
             for i in range(1, len(commands)+1):
@@ -304,7 +308,7 @@ while True:
     if changeInPlace == 1:
         os.system("cls")
         # noinspection PyUnboundLocalVariable
-        print(f"\nEnter the command which will replace {commands[replacedCommand-1]}")
+        print(f"\nEnter the command which will replace \"{format_command(commands[replacedCommand-1])}\"")
         command = input()
         while command not in keyinfo.allAssignments:
             os.system("cls")
@@ -328,7 +332,7 @@ while True:
                 print("\nThere is no such command.")
                 notFound = 0
             print("\nAll commands:")
-            list_readable_commands(commands)
+            print_readable_commands(commands)
             print("\nEnter a command number to insert after. 'q' cancels the process.")
             allCommandsForInsertion = []
             for i in range(0, len(commands)+1):
@@ -352,7 +356,9 @@ while True:
         os.system("cls")
         # noinspection PyUnboundLocalVariable
         if insertionCommand == 0:
-            print(f"\nEnter the command which will precede {commands[insertionCommand]}.")
+            print(
+                f"\nEnter the command which will precede "
+                f"\"{format_command(commands[insertionCommand])}\".")
             command = input()
             while command not in keyinfo.allAssignments:
                 os.system("cls")
@@ -362,7 +368,9 @@ while True:
                 print(f"\nThere is no command called '{command}'. Please check the keys above.")
                 command = input()
         else:
-            print(f"\nEnter the command which will be executed after {commands[insertionCommand-1]}.")
+            print(
+                f"\nEnter the command which will be executed after "
+                f"\"{format_command(commands[insertionCommand-1])}\".")
             command = input()
             while command not in keyinfo.allAssignments:
                 os.system("cls")
@@ -934,7 +942,7 @@ while True:
             os.system("cls")
             while True:
                 print("\nAll commands:\n")
-                list_readable_commands(commands)
+                print_readable_commands(commands)
                 print("\nRepeat all commands starting from which command?")
                 repeatPatternFrom = input()
                 allPossibleCommands = [i+1 for i in range(len(commands[:turn-1]))]
@@ -1126,7 +1134,7 @@ while True:
                     print("\nThere is no such command.")
                     notFound = 0
                 print("\nAll commands:")
-                list_readable_commands(commands)
+                print_readable_commands(commands)
                 print("\nDelete which command? 'q' cancels the process.")
                 allCommandsForRemoval = []
                 for i in range(1, len(commands)+1):
@@ -1144,8 +1152,6 @@ while True:
                 abortRemoval = 0
                 continue
             del commands[deletedCommand-1]
-            for index, i in enumerate(commands):
-                commands[index][0] = f'{index+1}{commandsRegex.search(i[0]).group()}'
             turn -= 1
             continue
     elif command == "-":
