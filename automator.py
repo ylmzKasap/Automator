@@ -64,7 +64,7 @@ def key_to_action(keyToPress, change, insertion):
 
     if insertion == 1:
         commands.insert(turn-1, [])
-        commands[turn-1] = ([f"{turn}{keyinfo.keyToText[keyToPress]}"])
+        commands[turn-1] = [keyinfo.keyToText[keyToPress]]
         commands[turn-1].append(
             list((currentPosition.x, currentPosition.y)))
         while True:
@@ -75,15 +75,13 @@ def key_to_action(keyToPress, change, insertion):
             except OSError:
                 time.sleep(0.2)
                 continue
-        for index, i in enumerate(commands):
-            commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
         turn = len(commands) + 1
         insertion = 0
         return change, insertion
 
     if change == 0:
         commands.append([])
-    commands[turn-1] = ([f"{turn}{keyinfo.keyToText[keyToPress]}"])
+    commands[turn-1] = [keyinfo.keyToText[keyToPress]]
     commands[turn-1].append(list((currentPosition.x, currentPosition.y)))
     while True:
         try:
@@ -107,18 +105,16 @@ def key_to_image_action(key, imageName, change, insertion, clickAmount):
 
     if insertion == 1:
         commands.insert(turn-1, [])
-        commands[turn-1] = ([f"{turn}{keyinfo.keyToTextImage[key]}"])
+        commands[turn-1] = [keyinfo.keyToTextImage[key]]
         commands[turn-1].append(f"{os.getcwd()}\\Pictures\\{imageName}")
         commands[turn - 1].append(clickAmount)
-        for index, i in enumerate(commands):
-            commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
         turn = len(commands) + 1
         insertion = 0
         return change, insertion
 
     if change == 0:
         commands.append([])
-    commands[turn-1] = ([f"{turn}{keyinfo.keyToTextImage[key]}"])
+    commands[turn-1] = [keyinfo.keyToTextImage[key]]
     commands[turn-1].append(f"{os.getcwd()}\\Pictures\\{imageName}")
     commands[turn - 1].append(clickAmount)
     if change == 1:
@@ -132,10 +128,15 @@ def key_to_image_action(key, imageName, change, insertion, clickAmount):
 def check_recursion(commandsList):
     for i in range(len(commandsList)):
         try:
-            if '-repeatPrevious' in commandsList[i][0] and '-repeatPrevious' in commandsList[i+1][0]:
+            if 'repeatPrevious' in commandsList[i][0] and 'repeatPrevious' in commandsList[i+1][0]:
                 return True
         except IndexError:
             return False
+
+
+def list_readable_commands(commandsList):
+    for index, command in enumerate(commandsList):
+        print(f"{index+1}. {keyinfo.format_commands(command)}")
 
 
 if len(currentProjects) == 0:
@@ -195,7 +196,7 @@ while True:
     except IndexError:
         print(f"\n{episode}. Unnamed Episode")
     if len(commands) > 0:
-        pprint.pprint(commands)
+        list_readable_commands(commands)
 
     if check_recursion(commands):
         recursionError = 1
@@ -224,7 +225,7 @@ while True:
             os.system("cls")
             print(f"\nEpisode {episode}\n")
             if len(commands) > 0:
-                pprint.pprint(commands)
+                list_readable_commands(commands)
             command = input()
             if command != "zzz":
                 break
@@ -280,7 +281,7 @@ while True:
                 print("\nThere is no such command.")
                 notFound = 0
             print("\nAll commands:")
-            pprint.pprint(commands)
+            list_readable_commands(commands)
             print("\nEnter a command number to replace. 'q' cancels the process.")
             allCommandsForReplacement = []
             for i in range(1, len(commands)+1):
@@ -327,7 +328,7 @@ while True:
                 print("\nThere is no such command.")
                 notFound = 0
             print("\nAll commands:")
-            pprint.pprint(commands)
+            list_readable_commands(commands)
             print("\nEnter a command number to insert after. 'q' cancels the process.")
             allCommandsForInsertion = []
             for i in range(0, len(commands)+1):
@@ -468,7 +469,10 @@ while True:
         print()
         for i in allEpisodeNames:
             print(i)
-        print(f"\n\nChoose an episode to go. There are {len(allCommands)} episodes in total.\n")
+        if len(allCommands) == 1:
+            print(f"\nThere is only {len(allCommands)} episode to go.\n")
+        else:
+            print(f"\n\nChoose an episode to go. There are {len(allCommands)} episodes in total.\n")
         print("Unsaved progress within current episode will be lost. 'q' cancels the process.")
         currentEpisodes = []
         for i in range(1, len(allCommands)+1):
@@ -620,16 +624,14 @@ while True:
             continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-writeVariable"])
+            commands[turn-1] = ["write_variable"]
             commands[turn-1].append(variableToBeWritten)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-writeVariable"])
+        commands[turn-1] = [f"write_variable"]
         commands[turn-1].append(variableToBeWritten)
         if changeInPlace == 1:
             turn = len(commands) + 1
@@ -644,16 +646,14 @@ while True:
         writeIt = input()
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-writeText"])
+            commands[turn-1] = ["write_text"]
             commands[turn-1].append(writeIt)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-writeText"])
+        commands[turn-1] = ["write_text"]
         commands[turn-1].append(writeIt)
         if changeInPlace == 1:
             turn = len(commands) + 1
@@ -678,16 +678,14 @@ while True:
             hotkeyDecision = input()
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-hotkey"])
+            commands[turn-1] = ["hotkey"]
             commands[turn-1].append(hotkeyDecision)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-hotkey"])
+        commands[turn-1] = ["hotkey"]
         commands[turn-1].append(hotkeyDecision)
         if changeInPlace == 1:
             turn = len(commands) + 1
@@ -713,17 +711,15 @@ while True:
             holdKey = input()
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-holdClick"])
+            commands[turn-1] = ["hold_click"]
             commands[turn-1].append(holdKey)
             commands[turn-1].append(list((currentPos.x, currentPos.y)))
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-holdClick"])
+        commands[turn-1] = ["hold_click"]
         commands[turn-1].append(holdKey)
         commands[turn-1].append(list((currentPos.x, currentPos.y)))
         if changeInPlace == 1:
@@ -749,16 +745,14 @@ while True:
             keyDecision = input()
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-pressKey"])
+            commands[turn-1] = (["press_key"])
             commands[turn-1].append(keyDecision)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-pressKey"])
+        commands[turn-1] = ["press_key"]
         commands[turn-1].append(keyDecision)
         if changeInPlace == 1:
             turn = len(commands) + 1
@@ -776,15 +770,13 @@ while True:
     elif command == "max":
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-maximizeWindow"])
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
+            commands[turn-1] = ["maximize_window"]
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-maximizeWindow"])
+        commands[turn-1] = ["maximize_window"]
         if changeInPlace == 1:
             turn = len(commands) + 1
             changeInPlace = 0
@@ -794,11 +786,15 @@ while True:
 
     elif command == "h":
         os.system("cls")
-        print("\nHold left click for how many seconds?")
-        holdTime = input()
         while True:
+            print("\nHold left click for how many seconds?")
+            holdTime = input()
             try:
                 holdTime = int(holdTime)
+                if holdTime < 1:
+                    os.system("cls")
+                    print("\nEnter a positive value.")
+                    continue
                 break
             except ValueError:
                 os.system("cls")
@@ -806,16 +802,14 @@ while True:
                 holdTime = input()
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-holdMouse"])
+            commands[turn-1] = ["hold_mouse"]
             commands[turn-1].append(holdTime)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-holdMouse"])
+        commands[turn-1] = ["hold_mouse"]
         commands[turn-1].append(holdTime)
         if changeInPlace == 1:
             turn = len(commands) + 1
@@ -826,11 +820,15 @@ while True:
 
     elif command == "w":
         os.system("cls")
-        print("\nWait for how many seconds?")
-        waiting = input()
         while True:
+            print("\nWait for how many seconds?")
+            waiting = input()
             try:
                 waiting = int(waiting)
+                if waiting < 1:
+                    os.system("cls")
+                    print("\nEnter a positive value.")
+                    continue
                 break
             except ValueError:
                 os.system("cls")
@@ -838,16 +836,14 @@ while True:
                 waiting = input()
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-wait"])
+            commands[turn-1] = ["wait"]
             commands[turn-1].append(waiting)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-wait"])
+        commands[turn-1] = ["wait"]
         commands[turn-1].append(waiting)
         if changeInPlace == 1:
             turn = len(commands) + 1
@@ -904,17 +900,15 @@ while True:
                 continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-repeatPrevious"])
+            commands[turn-1] = ["repeat_previous"]
             commands[turn-1].append(repeatCount)
             commands[turn - 1].append(repeatInterval)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-repeatPrevious"])
+        commands[turn-1] = ["repeat_previous"]
         commands[turn-1].append(repeatCount)
         commands[turn - 1].append(repeatInterval)
         if changeInPlace == 1:
@@ -940,7 +934,7 @@ while True:
             os.system("cls")
             while True:
                 print("\nAll commands:\n")
-                pprint.pprint(commands)
+                list_readable_commands(commands)
                 print("\nRepeat all commands starting from which command?")
                 repeatPatternFrom = input()
                 allPossibleCommands = [i+1 for i in range(len(commands[:turn-1]))]
@@ -977,17 +971,15 @@ while True:
             break
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-repeatPattern"])
+            commands[turn-1] = ["repeat_pattern"]
             commands[turn-1].append(repeatCount)
             commands[turn - 1].append(repeatPatternFrom)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-repeatPattern"])
+        commands[turn-1] = [f"repeat_pattern"]
         commands[turn-1].append(repeatCount)
         commands[turn - 1].append(repeatPatternFrom)
         if changeInPlace == 1:
@@ -1032,17 +1024,15 @@ while True:
 
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ([f"{turn}-moveRelative"])
+            commands[turn-1] = ["move_relative"]
             commands[turn-1].append(xDirection)
             commands[turn - 1].append(yDirection)
-            for index, i in enumerate(commands):
-                commands[index][0] = f"{index+1}{commandsRegex.search(i[0]).group()}"
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ([f"{turn}-moveRelative"])
+        commands[turn-1] = ["move_relative"]
         commands[turn - 1].append(xDirection)
         commands[turn - 1].append(yDirection)
         if changeInPlace == 1:
@@ -1136,7 +1126,7 @@ while True:
                     print("\nThere is no such command.")
                     notFound = 0
                 print("\nAll commands:")
-                pprint.pprint(commands)
+                list_readable_commands(commands)
                 print("\nDelete which command? 'q' cancels the process.")
                 allCommandsForRemoval = []
                 for i in range(1, len(commands)+1):

@@ -122,9 +122,9 @@ def process_variable(variableDictionary):
 def run_commands(actions, aTime):
     for index, point in enumerate(actions):
         colorNotFound = 0
-        if '-left_click' in point[0] or '-normal_click' in point[0]:
+        if point[0] == 'left_click':
             pyautogui.click(point[1], duration=aTime)
-        elif '-click_color' in point[0]:
+        elif point[0] == 'click_color':
             while True:
                 time.sleep(0.2)
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
@@ -132,7 +132,7 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
-        elif '-clickColorElsePass' in point[0]:
+        elif point[0] == 'click_color_else_pass':
             while True:
                 time.sleep(0.2)
                 try:
@@ -147,9 +147,9 @@ def run_commands(actions, aTime):
             if colorNotFound == 1:
                 continue
 
-        elif '-move_cursor' in point[0]:
+        elif point[0] == 'move_cursor':
             pyautogui.moveTo(point[1], duration=aTime)
-        elif '-moveCursor_color' in point[0]:
+        elif point[0] == 'move_cursor_color':
             time.sleep(0.2)
             while True:
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
@@ -157,7 +157,7 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
-        elif '-moveCursorColorElsePass' in point[0]:
+        elif point[0] == 'move_cursor_color_else_pass':
             time.sleep(0.2)
             while True:
                 try:
@@ -172,9 +172,9 @@ def run_commands(actions, aTime):
             if colorNotFound == 1:
                 continue
 
-        elif '-double_click' in point[0]:
+        elif point[0] == 'double_click':
             pyautogui.doubleClick(point[1], duration=aTime)
-        elif '-doubleClick_color' in point[0]:
+        elif point[0] == 'double_click_color':
             while True:
                 time.sleep(0.2)
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
@@ -182,7 +182,7 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
-        elif '-doubleClickColorElsePass' in point[0]:
+        elif point[0] == 'double_click_color_else_pass':
             while True:
                 try:
                     time.sleep(0.2)
@@ -197,9 +197,9 @@ def run_commands(actions, aTime):
             if colorNotFound == 1:
                 continue
 
-        elif '-right_click' in point[0]:
+        elif point[0] == 'right_click':
             pyautogui.rightClick(point[1], duration=aTime)
-        elif '-rightClick_color' in point[0]:
+        elif point[0] == 'right_click_color':
             while True:
                 time.sleep(0.2)
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
@@ -207,7 +207,7 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
-        elif '-rightClickElsePass' in point[0]:
+        elif point[0] == 'right_click_color_else_pass':
             while True:
                 try:
                     time.sleep(0.2)
@@ -222,9 +222,9 @@ def run_commands(actions, aTime):
             if colorNotFound == 1:
                 continue
 
-        elif '-middle_click' in point[0]:
+        elif point[0] == 'middle_click':
             pyautogui.middleClick(point[1], duration=aTime)
-        elif '-middleClick_color' in point[0]:
+        elif point[0] == 'middle_click_color':
             while True:
                 time.sleep(0.2)
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
@@ -232,7 +232,7 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
-        elif '-middleClickColorElsePass' in point[0]:
+        elif point[0] == 'middle_click_color_else_pass':
             while True:
                 try:
                     time.sleep(0.2)
@@ -247,10 +247,10 @@ def run_commands(actions, aTime):
             if colorNotFound == 1:
                 continue
 
-        elif '-drag_to' in point[0]:
+        elif point[0] == 'drag_to':
             time.sleep(0.2)
             pyautogui.dragTo(point[1], duration=aTime)
-        elif '-dragTo_color' in point[0]:
+        elif point[0] == 'drag_to_color':
             time.sleep(0.2)
             while True:
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
@@ -258,7 +258,7 @@ def run_commands(actions, aTime):
                     break
                 else:
                     incorrect_color(point)
-        elif '-dragToColorElsePass' in point[0]:
+        elif point[0] == 'drag_to_color_else_pass':
             time.sleep(0.2)
             while True:
                 try:
@@ -273,16 +273,16 @@ def run_commands(actions, aTime):
             if colorNotFound == 1:
                 continue
 
-        elif 'scrollUp' in point[0]:
+        elif point[0] == 'scroll_up':
             time.sleep(0.5)
             for i in range(3):
                 pyautogui.scroll(500)
-        elif 'scrollDown' in point[0]:
+        elif point[0] == 'scroll_down':
             time.sleep(0.5)
             for i in range(3):
                 pyautogui.scroll(-500)
 
-        elif '-clickImage' in point[0]:
+        elif point[0] == 'click_image':
             time.sleep(0.5)
             while True:
                 try:
@@ -293,7 +293,7 @@ def run_commands(actions, aTime):
                 except FileNotFoundError:
                     file_not_found(10, point[1])
 
-        elif '-imageClickIfOnScreen' in point[0]:
+        elif point[0] == 'click_image_else_pass':
             time.sleep(0.5)
             try:
                 pyautogui.click(point[1], duration=aTime)
@@ -304,7 +304,7 @@ def run_commands(actions, aTime):
             except FileNotFoundError:
                 file_not_found(10, point[1])
 
-        elif '-moveCursorImage' in point[0]:
+        elif point[0] == 'move_cursor_on_image':
             time.sleep(0.5)
             while True:
                 try:
@@ -315,7 +315,7 @@ def run_commands(actions, aTime):
                 except FileNotFoundError:
                     file_not_found(10, point[1])
 
-        elif '-imageMoveCursorIfOnScreen' in point[0]:
+        elif point[0] == 'cursor_on_image_else_pass':
             time.sleep(0.5)
             try:
                 pyautogui.moveTo(point[1], duration=aTime)
@@ -324,7 +324,7 @@ def run_commands(actions, aTime):
             except FileNotFoundError:
                 file_not_found(10, point[1])
 
-        elif '-doubleClickImage' in point[0]:
+        elif point[0] == 'double_click_image':
             time.sleep(0.5)
             while True:
                 try:
@@ -335,7 +335,7 @@ def run_commands(actions, aTime):
                 except FileNotFoundError:
                     file_not_found(10, point[1])
 
-        elif '-imageDoubleClickIfOnScreen' in point[0]:
+        elif point[0] == 'double_click_image_else_pass':
             time.sleep(0.5)
             try:
                 pyautogui.doubleClick(point[1], duration=aTime)
@@ -344,7 +344,7 @@ def run_commands(actions, aTime):
             except FileNotFoundError:
                 file_not_found(10, point[1])
 
-        elif '-rightClickImage' in point[0]:
+        elif point[0] == 'right_click_image':
             time.sleep(0.5)
             while True:
                 try:
@@ -355,7 +355,7 @@ def run_commands(actions, aTime):
                 except FileNotFoundError:
                     file_not_found(10, point[1])
 
-        elif 'imageRightClickIfOnScreen' in point[0]:
+        elif point[0] == 'right_click_image_else_pass':
             time.sleep(0.5)
             try:
                 pyautogui.rightClick(point[1], duration=aTime)
@@ -364,7 +364,7 @@ def run_commands(actions, aTime):
             except FileNotFoundError:
                 file_not_found(10, point[1])
 
-        elif '-dragToImage' in point[0]:
+        elif point[0] == 'drag_to_image':
             time.sleep(0.5)
             while True:
                 try:
@@ -375,28 +375,28 @@ def run_commands(actions, aTime):
                 except FileNotFoundError:
                     file_not_found(10, point[1])
 
-        elif '-wait' in point[0]:
+        elif point[0] == 'wait':
             time.sleep(point[1])
 
-        elif '-maximizeWindow' in point[0]:
+        elif point[0] == 'maximize_window':
             time.sleep(0.2)
             activeWindow = pyautogui.getActiveWindow()
             activeWindow.maximize()
 
-        elif '-holdMouse' in point[0]:
+        elif point[0] == 'hold_mouse':
             pyautogui.mouseDown()
             time.sleep(point[1])
             pyautogui.mouseUp()
 
-        elif '-writeText' in point[0]:
+        elif point[0] == 'write_text':
             pyautogui.write(point[1], 0.01)
 
-        elif '-hotkey' in point[0]:
+        elif point[0] == 'hotkey':
             if point[1] == 'copy':
                 pyautogui.hotkey('ctrl', 'c')
             elif point[1] == 'paste':
                 pyautogui.hotkey('ctrl', 'v')
-            elif point[1] == 'sAll':
+            elif point[1] == 'select all':
                 pyautogui.hotkey('ctrl', 'a')
             elif point[1] == 'cut':
                 pyautogui.hotkey('ctrl', 'x')
@@ -411,7 +411,7 @@ def run_commands(actions, aTime):
             elif point[1] == 'exit':
                 pyautogui.hotkey('alt', 'f4')
 
-        elif '-pressKey' in point[0]:
+        elif point[0] == 'press_key':
             time.sleep(0.2)
             if point[1] == 'esc':
                 pyautogui.press('esc')
@@ -436,19 +436,19 @@ def run_commands(actions, aTime):
             elif point[1] == 'backspace':
                 pyautogui.press('backspace')
 
-        elif '-writeVariable' in point[0]:
+        elif point[0] == 'write_variable':
             pyautogui.write(variableDict[point[1]], 0.01)
 
-        elif '-holdClick' in point[0]:
+        elif point[0] == 'hold_click':
             time.sleep(0.2)
             pyautogui.keyDown(point[1])
             pyautogui.click(point[2], duration=aTime)
             pyautogui.keyUp(point[1])
 
-        elif '-moveRelative' in point[0]:
+        elif point[0] == 'move_relative':
             pyautogui.move(point[1], point[2], duration=aTime)
 
-        elif '-repeatPrevious' in point[0]:
+        elif point[0] == 'repeat_previous':
             try:
                 if point[1] == 'infinite':
                     while True:
@@ -459,7 +459,7 @@ def run_commands(actions, aTime):
             except pyautogui.FailSafeException:
                 continue
 
-        elif '-repeatPattern' in point[0]:
+        elif point[0] == 'repeat_pattern':
             try:
                 if point[1] == 'infinite':
                     while True:
