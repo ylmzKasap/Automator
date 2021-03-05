@@ -15,21 +15,24 @@ import keyinfo
 
 ACTION_DURATION = 0.65  # Action time for each command
 
+originalScreenSize = (pyautogui.size().width, pyautogui.size().height)
+allCommands = []
+allEpisodeNames = []
+commands = []
+turn = 1
+error = 0  # Switches to "1" if there is an error. Prevents os.system("cls").
+recursionError = 0
+
+episodesRegex = re.compile(r"[^\d]+")
+
+# Create projects folder.
+if not os.path.exists(f"{os.getcwd()}\\projects"):
+    os.mkdir(f"{os.getcwd()}\\projects")
+
 currentProjects = [
     folder for folder in os.listdir(f"{os.getcwd()}\\projects")
     if os.path.isdir(f"{os.getcwd()}\\projects\\{folder}")
     and folder != "__pycache__"]
-
-allCommands = []  # List of commands for all episodes, to be saved later
-allEpisodeNames = []  # List of names for all episodes, to be saved later
-commands = []  # List of commands for CURRENT episode
-turn = 1  # command number for the current episode
-error = 0  # Switches to "1" if there is an error. Prevents os.system("cls").
-recursionError = 0  # Switches to "1" if there is more than 1 subsequent repeat previous command assignments.
-
-episodesRegex = re.compile(r"[^\d]+")
-
-originalScreenSize = (pyautogui.size().width, pyautogui.size().height)
 
 
 def correct_project_name(project_name):
