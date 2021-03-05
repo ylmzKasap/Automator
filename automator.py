@@ -4,19 +4,21 @@ import sys
 import copy
 import re
 import pprint
+import shutil
+import importlib
 from pathlib import Path
 
 import pyautogui
+import openpyxl
 
 import keyinfo
-from runit import variableDict, run_commands, process_variable
-
 
 ACTION_DURATION = 0.65  # Action time for each command
 
 currentProjects = [
-    folder for folder in os.listdir(f"{os.getcwd()}\\Projects")
-    if os.path.isdir(f"{os.getcwd()}\\Projects\\{folder}")]
+    folder for folder in os.listdir(f"{os.getcwd()}\\projects")
+    if os.path.isdir(f"{os.getcwd()}\\projects\\{folder}")
+    and folder != "__pycache__"]
 
 allCommands = []  # List of commands for all episodes, to be saved later
 allEpisodeNames = []  # List of names for all episodes, to be saved later
@@ -25,15 +27,13 @@ turn = 1  # command number for the current episode
 error = 0  # Switches to "1" if there is an error. Prevents os.system("cls").
 recursionError = 0  # Switches to "1" if there is more than 1 subsequent repeat previous command assignments.
 
-commandsRegex = re.compile(r"-.*")
 episodesRegex = re.compile(r"[^\d]+")
-commandNameRegex = re.compile(r'[a-zA-Z_]+')
 
 originalScreenSize = (pyautogui.size().width, pyautogui.size().height)
 
 
 def correct_project_name(project_name):
-    forbiddenCharacters = ["\\", "/", ":", "*", "?", "\"", "<", ">", "|"]  # To create a folder
+    forbiddenCharacters = ["\\", "/", ":", "*", "?", "\"", "<", ">", "|", "."]  # To create a folder
     nameError = 0
     try:
         while True:
@@ -106,7 +106,7 @@ def key_to_image_action(key, imageName, change, insertion, clickAmount):
     if insertion == 1:
         commands.insert(turn-1, [])
         commands[turn-1] = [keyinfo.keyToTextImage[key]]
-        commands[turn-1].append(f"{os.getcwd()}\\Pictures\\{imageName}")
+        commands[turn-1].append(f"{os.getcwd()}\\pictures\\{imageName}")
         commands[turn - 1].append(clickAmount)
         turn = len(commands) + 1
         insertion = 0
@@ -115,7 +115,7 @@ def key_to_image_action(key, imageName, change, insertion, clickAmount):
     if change == 0:
         commands.append([])
     commands[turn-1] = [keyinfo.keyToTextImage[key]]
-    commands[turn-1].append(f"{os.getcwd()}\\Pictures\\{imageName}")
+    commands[turn-1].append(f"{os.getcwd()}\\pictures\\{imageName}")
     commands[turn - 1].append(clickAmount)
     if change == 1:
         change = 0
@@ -123,6 +123,42 @@ def key_to_image_action(key, imageName, change, insertion, clickAmount):
         return change, insertion
     turn += 1
     return change, insertion
+
+
+def process_variable(variableDictionary):
+    variableSymbol = "v"
+    allowedRange = len(list(variableDictionary.keys()))
+    numberError, numberErrorMessage = 0, "\nEnter a number."
+    rangeError, rangeErrorMessage = 0, f"\nThe number must be between 1 and {allowedRange}."
+    if allowedRange == 0:
+        print("\nThere are no variables in the variable dictionary.")
+        time.sleep(2)
+        return
+    while True:
+        variable = 0
+        try:
+            os.system("cls")
+            if numberError == 1:
+                print(numberErrorMessage)
+                numberError = 0
+            if rangeError == 1:
+                print(rangeErrorMessage)
+                rangeError = 0
+            print("\nEnter a variable number.")
+            print("Current variables:\n")
+            for index, v in enumerate(variableDictionary.values()):
+                print(f"{index+1}. {v}")
+            variable = input()
+            variable = int(variable)
+        except ValueError:
+            numberError = 1
+            continue
+        if variable < 1 or variable > allowedRange:
+            rangeError = 1
+            continue
+        break
+    variableTranslation = variableSymbol + str(variable)
+    return variableTranslation
 
 
 def check_recursion(commandsList):
@@ -158,22 +194,42 @@ else:
     projectName = correct_project_name(projectName)
 
 try:
-    projectPath = Path.cwd() / "Projects" / projectName
+    projectPath = Path.cwd() / "projects" / projectName
 except TypeError:
     print("\nThe program is terminated as no valid project name has been provided.")
     input()
     sys.exit()
 
-projectPathAlternative = f"{os.getcwd()}\\Projects\\{projectName}"
+projectPathAlternative = f"{os.getcwd()}\\projects\\{projectName}"
 
+# Create project files for the first time.
 if not projectPath.exists():
     os.makedirs(projectPath)
+    newDict = openpyxl.Workbook()
+    newDict.save(projectPath / "Variable Dictionary.xlsx")
+    with open(projectPath / "__init__.py", "w") as package:
+        pass
+    with open(f"{projectPath}\\projectinfo.py", "w") as projectInfo:
+        projectInfo.write(f"projectName = '{projectName}'\n")
+        projectInfo.write(f"projectPath = r'{projectPathAlternative}'\n")
+        projectInfo.write(f"actionTime = {ACTION_DURATION}")
+    # Copy project files to project path.
+    shutil.copy(f".\\projectfiles\\start.py", projectPathAlternative)
+    shutil.copy(f".\\projectfiles\\varsettings.py", projectPathAlternative)
+
+# Import the variable dictionary.
+varDictImport = importlib.import_module(f"projects.{projectName}.varsettings")
+variableDict = varDictImport.get_vars(projectPathAlternative)
+
+# Import the function which runs the commands.
+runCommandsImport = importlib.import_module(f"projects.{projectName}.start")
+run_commands = runCommandsImport.run_commands
 
 saveName = "savedProject.py"
 
+# Load existing project.
 if (projectPath / saveName).exists():
-    sys.path.insert(1, projectPathAlternative)
-    import savedProject
+    savedProject = importlib.import_module(f"projects.{projectName}.savedProject")
     allCommands = savedProject.allCommandsSave
     allEpisodeNames = savedProject.allEpisodeNamesSave
     commands = copy.deepcopy(allCommands[-1])
@@ -185,6 +241,7 @@ else:
 changeInPlace = 0
 insertionInPlace = 0
 firstTime = 0
+
 
 while True:
     if error == 0:
@@ -670,6 +727,28 @@ while True:
         turn += 1
         continue
 
+    elif command == "web":
+        os.system("cls")
+        print("\nEnter the URL of a website including 'https:\\\\'.")
+        webURL = input()
+        if insertionInPlace == 1:
+            commands.insert(turn-1, [])
+            commands[turn-1] = ["go_website"]
+            commands[turn-1].append(webURL)
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn-1] = ["go_website"]
+        commands[turn-1].append(webURL)
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
+        continue
+
     elif command == "hot":
         os.system("cls")
         print("\nChoose a hotkey.")
@@ -1058,7 +1137,7 @@ while True:
         os.system("cls")
         print(
             "\nTake a screenshot of the image you wish to be found on the screen."
-            "\nThen, copy the image file to 'Pictures' folder which is found in the directory of this program."
+            "\nThen, copy the image file to 'pictures' folder which is found in the directory of this program."
             "\nPress enter after completing this process."
         )
         input()

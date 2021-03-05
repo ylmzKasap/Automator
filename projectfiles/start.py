@@ -1,8 +1,16 @@
 import time
 import os
-import re
+import webbrowser
 
 import pyautogui
+
+if __name__ == '__main__':
+    import varsettings
+    import projectinfo
+    import savedProject
+else:
+    from . import varsettings
+    from . import projectinfo
 
 
 def incorrect_color(point):
@@ -23,7 +31,7 @@ def incorrect_color(point):
 def file_not_found(wait, picture):
     waitTime = wait
     os.system("cls")
-    print(f"\n{os.path.basename(picture)}, is not in 'Pictures' folder.")
+    print(f"\n{os.path.basename(picture)}, is not in 'pictures' folder.")
     for i in range(waitTime):
         print(f"\nNew attempt in {waitTime} seconds.")
         waitTime -= 1
@@ -40,86 +48,8 @@ def image_not_found(wait):
         time.sleep(1)
 
 
-# --- For specific projects, delete or change when needed --- Required to create a variable dictionary
-imageDestination = f"{os.getcwd()}\\Files\\Image Files"
-soundDestination = f"{os.getcwd()}\\Files\\Sound Files"
-
-directoryError = 0
-variableDict = {}
-variableSymbol = "v"
-
-try:
-    imageDestinationContents = os.listdir(imageDestination)
-    soundDestinationContents = os.listdir(soundDestination)
-    words = []
-    getTillDot = re.compile(r"[^.]+")
-
-    for i in imageDestinationContents:
-        words.append(getTillDot.search(i).group())
-
-    index = 1
-    words.sort(key=str.lower)
-    imageDestinationContents.sort(key=str.lower)
-    soundDestinationContents.sort(key=str.lower)
-
-    for i in range(len(imageDestinationContents)):
-        variableDict[variableSymbol + str(index)] = words[i]
-        index += 1
-        variableDict[variableSymbol + str(index)] = imageDestinationContents[i]
-        index += 1
-        variableDict[variableSymbol + str(index)] = soundDestinationContents[i]
-        index += 1
-
-    variableDict[variableSymbol + str(len(list(variableDict.keys())) + 1)] = imageDestination
-    variableDict[variableSymbol + str(len(list(variableDict.keys())) + 1)] = soundDestination
-
-except FileNotFoundError:
-    directoryError = 1
-
-# --- For specific projects, delete or change when needed ---
-
-
-def process_variable(variableDictionary):
-    if directoryError == 1:
-        print("\nCouldn't find the directory to collect variables. This method will not be usable.")
-        print(f"\nDirectories searched:\n{imageDestination}\n{soundDestination}")
-        input()
-        return
-    allowedRange = len(list(variableDictionary.keys()))
-    numberError, numberErrorMessage = 0, "\nEnter a number."
-    rangeError, rangeErrorMessage = 0, f"\nThe number must be between 1 and {allowedRange}."
-    if allowedRange == 0:
-        print("\nThere are no variables in the variable dictionary.")
-        time.sleep(2)
-        return
-    while True:
-        variable = 0
-        try:
-            os.system("cls")
-            if numberError == 1:
-                print(numberErrorMessage)
-                numberError = 0
-            if rangeError == 1:
-                print(rangeErrorMessage)
-                rangeError = 0
-            print("\nEnter a variable number.")
-            print("Current variables:\n")
-            for index, v in enumerate(variableDictionary.values()):
-                print(f"{index+1}. {v}")
-            variable = input()
-            variable = int(variable)
-        except ValueError:
-            numberError = 1
-            continue
-        if variable < 1 or variable > allowedRange:
-            rangeError = 1
-            continue
-        break
-    variableTranslation = variableSymbol + str(variable)
-    return variableTranslation
-
-
 def run_commands(actions, aTime):
+    variableDict = varsettings.get_vars(projectinfo.projectPath)
     for index, point in enumerate(actions):
         colorNotFound = 0
         if point[0] == 'left_click':
@@ -134,7 +64,6 @@ def run_commands(actions, aTime):
                     incorrect_color(point)
         elif point[0] == 'click_color_else_pass':
             while True:
-                time.sleep(0.2)
                 try:
                     if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                         pyautogui.click(point[1], duration=aTime)
@@ -158,7 +87,6 @@ def run_commands(actions, aTime):
                 else:
                     incorrect_color(point)
         elif point[0] == 'move_cursor_color_else_pass':
-            time.sleep(0.2)
             while True:
                 try:
                     if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
@@ -185,7 +113,6 @@ def run_commands(actions, aTime):
         elif point[0] == 'double_click_color_else_pass':
             while True:
                 try:
-                    time.sleep(0.2)
                     if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                         pyautogui.doubleClick(point[1], duration=aTime)
                         break
@@ -210,7 +137,6 @@ def run_commands(actions, aTime):
         elif point[0] == 'right_click_color_else_pass':
             while True:
                 try:
-                    time.sleep(0.2)
                     if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                         pyautogui.rightClick(point[1], duration=aTime)
                         break
@@ -235,7 +161,6 @@ def run_commands(actions, aTime):
         elif point[0] == 'middle_click_color_else_pass':
             while True:
                 try:
-                    time.sleep(0.2)
                     if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                         pyautogui.middleClick(point[1], duration=aTime)
                         break
@@ -259,7 +184,6 @@ def run_commands(actions, aTime):
                 else:
                     incorrect_color(point)
         elif point[0] == 'drag_to_color_else_pass':
-            time.sleep(0.2)
             while True:
                 try:
                     if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
@@ -294,7 +218,6 @@ def run_commands(actions, aTime):
                     file_not_found(10, point[1])
 
         elif point[0] == 'click_image_else_pass':
-            time.sleep(0.5)
             try:
                 pyautogui.click(point[1], duration=aTime)
                 for i in range(1, point[2]):
@@ -316,7 +239,6 @@ def run_commands(actions, aTime):
                     file_not_found(10, point[1])
 
         elif point[0] == 'cursor_on_image_else_pass':
-            time.sleep(0.5)
             try:
                 pyautogui.moveTo(point[1], duration=aTime)
             except TypeError:
@@ -336,7 +258,6 @@ def run_commands(actions, aTime):
                     file_not_found(10, point[1])
 
         elif point[0] == 'double_click_image_else_pass':
-            time.sleep(0.5)
             try:
                 pyautogui.doubleClick(point[1], duration=aTime)
             except TypeError:
@@ -356,7 +277,6 @@ def run_commands(actions, aTime):
                     file_not_found(10, point[1])
 
         elif point[0] == 'right_click_image_else_pass':
-            time.sleep(0.5)
             try:
                 pyautogui.rightClick(point[1], duration=aTime)
             except TypeError:
@@ -469,6 +389,15 @@ def run_commands(actions, aTime):
                         run_commands(actions[(point[2]-1):index], aTime)
             except pyautogui.FailSafeException:
                 continue
+
+        elif point[0] == "go_website":
+            webbrowser.open(point[1])
+
         else:
             print(f"\nCould not find {point[0]} in the execution file.")
             input()
+
+
+if __name__ == '__main__':
+    for command in savedProject.allCommandsSave:
+        run_commands(command, projectinfo.actionTime)

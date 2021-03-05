@@ -1,9 +1,7 @@
 .idea/
 __pycache__/
-Files/
 venv/
-Pictures/
-Projects/
-Taslak3Applier.py
+pictures/
+projects/
 toBeDone.txt
 zz.py

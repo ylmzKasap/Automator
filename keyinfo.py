@@ -64,7 +64,8 @@ readableCommands = {
     "hold_click": "Hold {} key and click on {}",
     "move_relative": "Move mouse",
     "repeat_previous": "Repeat previous command",
-    "repeat_pattern": "Repeat all commands"
+    "repeat_pattern": "Repeat all commands",
+    "go_website": "Go to website:"
 }
 
 
@@ -72,7 +73,7 @@ def format_commands(command):
     if command[0] == "left_click" or command[0] == "move_cursor" or command[0] == "double_click" \
             or command[0] == "right_click" or command[0] == "middle_click" or command[0] == "drag_to":
         return f"{readableCommands[command[0]]}" \
-               + f" | x: {command[1][0]} y: {command[1][1]}".rjust(30 - len(readableCommands[command[0]]))
+               + f" | x: {command[1][0]} y: {command[1][1]}"
 
     elif command[0] == 'wait' or command[0] == 'hold_mouse':
         if command[1] >= 2:
@@ -146,7 +147,10 @@ def format_commands(command):
             or command[0] == "drag_to_color" or command[0] == "drag_to_color_else_pass":
         spaceBonus = 7 - (len(str(command[1][0])) + len(str(command[1][0])))
         return f"{readableCommands[command[0]]}" \
-               + f" | x: {command[1][0]} y: {command[1][1]} {' ' * spaceBonus}| rgb{command[2]}"
+               + f" | x: {command[1][0]} y: {command[1][1]} {' ' * (spaceBonus-1)}| rgb{command[2]}"
+
+    elif command[0] == "go_website":
+        return readableCommands[command[0]] + f" {command[1]}"
 
 
 keyToTextImage = {
@@ -190,8 +194,8 @@ keyboard = {
 allAssignments = [
     '.', 'd', 'r', 'm', 'dt', 'c',
     '..', 'dd', 'rr', 'mm', 'dtt', 'cc',
-    '...', 'ddd', 'rrr', 'mmm', 'dttt', 'ccc'
-    'v', 'k', 'hot', 'p', 'max', 'w', 'i',
+    '...', 'ddd', 'rrr', 'mmm', 'dttt', 'ccc',
+    'v', 'k', 'hot', 'p', 'max', 'w', 'i', 'web',
     'su', 'sd', 'h', 'hc', 'mr', 'repeat', 'repeatpattern',
 ]
 
@@ -222,6 +226,7 @@ allAssignmentsExplained = {
     'sd': 'Scroll down',
     'h': 'Hold left click for * seconds',
     'hc': 'Hold and click',
+    'web': 'Open a website in the default browser',
     'repeat': 'Repeat previous command',
     'repeatpattern': 'Repeat specified pattern'
     }
