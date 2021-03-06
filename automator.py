@@ -6,12 +6,14 @@ import re
 import pprint
 import shutil
 import importlib
+import subprocess
 from pathlib import Path
 
 import pyautogui
 import openpyxl
 
 import keyinfo
+
 
 ACTION_DURATION = 0.65  # Action time for each command
 
@@ -28,6 +30,8 @@ episodesRegex = re.compile(r"[^\d]+")
 # Create projects folder.
 if not os.path.exists(f"{os.getcwd()}\\projects"):
     os.mkdir(f"{os.getcwd()}\\projects")
+if not os.path.exists(f"{os.getcwd()}\\sounds"):
+    os.mkdir(f"{os.getcwd()}\\sounds")
 
 currentProjects = [
     folder for folder in os.listdir(f"{os.getcwd()}\\projects")
@@ -107,9 +111,9 @@ def key_to_image_action(key, imageName, change, insertion, clickAmount):
     global turn
 
     if insertion == 1:
-        commands.insert(turn-1, [])
-        commands[turn-1] = [keyinfo.keyToTextImage[key]]
-        commands[turn-1].append(f"{os.getcwd()}\\pictures\\{imageName}")
+        commands.insert(turn - 1, [])
+        commands[turn - 1] = [keyinfo.keyToTextImage[key]]
+        commands[turn - 1].append(f"{os.getcwd()}\\pictures\\{imageName}")
         commands[turn - 1].append(clickAmount)
         turn = len(commands) + 1
         insertion = 0
@@ -117,8 +121,8 @@ def key_to_image_action(key, imageName, change, insertion, clickAmount):
 
     if change == 0:
         commands.append([])
-    commands[turn-1] = [keyinfo.keyToTextImage[key]]
-    commands[turn-1].append(f"{os.getcwd()}\\pictures\\{imageName}")
+    commands[turn - 1] = [keyinfo.keyToTextImage[key]]
+    commands[turn - 1].append(f"{os.getcwd()}\\pictures\\{imageName}")
     commands[turn - 1].append(clickAmount)
     if change == 1:
         change = 0
@@ -258,7 +262,7 @@ while True:
     try:
         print(f"\n{allEpisodeNames[episode-1]}\n")
     except IndexError:
-        print(f"\n{episode}. Unnamed Episode")
+        print(f"\n{episode}. Unnamed Episode\n")
     if len(commands) > 0:
         print_readable_commands(commands)
 
@@ -707,6 +711,20 @@ while True:
             continue
         turn += 1
         continue
+    elif command == "vdict":
+        os.system("cls")
+        excelPath = 'C:/Program Files (x86)/Microsoft Office/root/Office16/EXCEL.exe'
+        print(
+            "\nSave and close the excel file after you add the variables you want."
+            "\nVariable dictionary of the project will be updated."
+        )
+        editDictionary = subprocess.Popen(
+            [excelPath, f"{projectPathAlternative}\\Variable Dictionary.xlsx"]
+        )
+        editDictionary.wait()
+        varDictImport = importlib.import_module(f"projects.{projectName}.varsettings")
+        variableDict = varDictImport.get_vars(projectPathAlternative)
+        continue
 
     elif command == "k":
         os.system("cls")
@@ -941,6 +959,52 @@ while True:
             continue
         turn += 1
         continue
+    elif command == "wRandom":
+        os.system("cls")
+        randomWaitingStartTime = randomWaitingEndTime = 0
+        print("\nEnter two values as seconds separated by a space which will mark"
+              + " the start and end points of the random waiting time.")
+        while True:
+            print("\nEntering '15 30' waits for random seconds between 15 and 30.")
+            randomWaitTime = input()
+            randomWaitList = randomWaitTime.split()
+            if len(randomWaitList) != 2:
+                os.system("cls")
+                print("\nPlease enter two values as seconds, separated by a space.")
+                continue
+            try:
+                randomWaitingStartTime = randomWaitList[0]
+                randomWaitingEndTime = randomWaitList[1]
+                randomWaitingStartTime = int(randomWaitingStartTime)
+                randomWaitingEndTime = int(randomWaitingEndTime)
+            except ValueError:
+                os.system("cls")
+                print(f"\nValues must be numbers.")
+                continue
+            if randomWaitingStartTime < 0 or randomWaitingEndTime < 0:
+                os.system("cls")
+                print("\nValues must be greater than 0.")
+                continue
+            break
+        if insertionInPlace == 1:
+            commands.insert(turn - 1, [])
+            commands[turn - 1] = ["wait_random"]
+            commands[turn - 1].append(randomWaitingStartTime)
+            commands[turn - 1].append(randomWaitingEndTime)
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn - 1] = ["wait_random"]
+        commands[turn - 1].append(randomWaitingStartTime)
+        commands[turn - 1].append(randomWaitingEndTime)
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
+        continue
 
     elif command == "repeat":
         os.system("cls")
@@ -1114,15 +1178,15 @@ while True:
 
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
-            commands[turn-1] = ["move_relative"]
-            commands[turn-1].append(xDirection)
+            commands[turn - 1] = ["move_relative"]
+            commands[turn - 1].append(xDirection)
             commands[turn - 1].append(yDirection)
             turn = len(commands) + 1
             insertionInPlace = 0
             continue
         if changeInPlace == 0:
             commands.append([])
-        commands[turn-1] = ["move_relative"]
+        commands[turn - 1] = ["move_relative"]
         commands[turn - 1].append(xDirection)
         commands[turn - 1].append(yDirection)
         if changeInPlace == 1:
@@ -1141,39 +1205,25 @@ while True:
         print(
             "\nTake a screenshot of the image you wish to be found on the screen."
             "\nThen, copy the image file to 'pictures' folder which is found in the directory of this program."
-            "\nPress enter after completing this process."
+            "\n\nPress enter after completing this process."
         )
         input()
         os.system("cls")
         print("\nEnter the full name of the image file, including its extension.")
         ssName = input()
-        while True:
-            print(f"\nName of the image file saved as '{ssName}'.")
-            print("Press enter to continue.")
-            decision = input()
-            if decision == "":
-                break
-            else:
-                os.system("cls")
-                print("\nEnter the full name of the image file, including its extension.")
-                ssName = input()
         os.system("cls")
-        print("\nWhich command should be used on this image?")
-        print(
-            "\n'.': Left click\n'r': Right click\n'd': Double click\n'dt': Drag to\n'c': Move cursor"
-            + "\n'..': Left click else continue\n'rr': Right click else continue"
-            + "\n'dd': Double click else continue\n'cc': Move cursor else continue"
-        )
-        decision = input()
-        while decision not in list(keyinfo.keyToTextImage.keys()):
-            os.system("cls")
-            print("\nThere is no such command. Available commands:")
-            print(
-                "\n'.': Left click\n'r': Right click\n'd': Double click\n'dt': Drag to\n'c': Move cursor"
-                + "\n'..': Left click else continue\n'rr': Right click else continue"
-                + "\n'dd': Double click else continue\n'cc': Move cursor else continue"
-            )
+        print(f"\nName of the image file saved as '{ssName}'.")
+        while True:
+            print("\nAvailable Commands:")
+            for k, v in keyinfo.imageCommandsExplained.items():
+                print(f"{k}: {v}")
+            print("\nWhich command should be used on this image?")
             decision = input()
+            if decision not in list(keyinfo.keyToTextImage.keys()):
+                os.system("cls")
+                print("\nThere is no such command.")
+                continue
+            break
         clickCount = 1
         if decision == "..":
             os.system("cls")
@@ -1194,6 +1244,39 @@ while True:
         changeInPlace, insertionInPlace = key_to_image_action(
             decision, ssName, changeInPlace, insertionInPlace, clickCount)
         continue
+
+    elif command == "sound":
+        os.system("cls")
+        print(
+            "\nCopy the sound file you wish to use to the 'sounds' folder"
+            + " which is located in the project directory."
+        )
+        while True:
+            print("\nEnter the full name of the sound file, including its extension.")
+            soundFileName = input()
+            print(
+                f"\nThe name of the sound file is saved as '{soundFileName}'."
+                "\nPress enter to continue, press some other key and enter to rename it."
+            )
+            soundNameDecision = input()
+            if soundNameDecision == "":
+                break
+        if insertionInPlace == 1:
+            commands.insert(turn - 1, [])
+            commands[turn - 1] = ["play_sound"]
+            commands[turn-1].append(f"{os.getcwd()}\\sounds\\{soundFileName}")
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn - 1] = ["play_sound"]
+        commands[turn - 1].append(f"{os.getcwd()}\\sounds\\{soundFileName}")
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
 
     elif command == "qq":
         break
