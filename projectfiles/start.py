@@ -2,6 +2,7 @@ import time
 import os
 import webbrowser
 import random
+import importlib
 
 import pyautogui
 
@@ -9,12 +10,12 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 from pygame import mixer, error
 
 if __name__ == "__main__":
-    import varsettings
+    from data import varsettings
     import projectinfo
     import savedProject
 else:
-    from . import varsettings
     from . import projectinfo
+    varsettings = importlib.import_module(f"projects.{projectinfo.projectName}.data.varsettings")
 
 
 def incorrect_color(point):
@@ -53,7 +54,7 @@ def image_not_found(wait):
 
 
 def run_commands(actions, aTime):
-    variableDict = varsettings.get_vars(projectinfo.projectPath)
+    variableDict = varsettings.get_vars(f"{projectinfo.projectPath}\\data")
     for index, point in enumerate(actions):
         colorNotFound = 0
         if point[0] == "left_click":

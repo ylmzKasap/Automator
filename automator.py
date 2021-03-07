@@ -211,10 +211,12 @@ projectPathAlternative = f"{os.getcwd()}\\projects\\{projectName}"
 
 # Create project files for the first time.
 if not projectPath.exists():
-    os.makedirs(projectPath)
+    os.makedirs(projectPath / "data")
     newDict = openpyxl.Workbook()
-    newDict.save(projectPath / "Variable Dictionary.xlsx")
+    newDict.save(projectPath / "data" / "Variable Dictionary.xlsx")
     with open(projectPath / "__init__.py", "w", encoding="utf-8") as package:
+        pass
+    with open(projectPath / "data" / "__init__.py", "w", encoding="utf-8") as dataPackage:
         pass
     with open(f"{projectPath}\\projectinfo.py", "w", encoding="utf-8") as projectInfo:
         projectInfo.write(f"projectName = '{projectName}'\n")
@@ -222,11 +224,11 @@ if not projectPath.exists():
         projectInfo.write(f"actionTime = {ACTION_DURATION}")
     # Copy project files to project path.
     shutil.copy(f".\\projectfiles\\start.py", projectPathAlternative)
-    shutil.copy(f".\\projectfiles\\varsettings.py", projectPathAlternative)
+    shutil.copy(f".\\projectfiles\\data\\varsettings.py", (projectPathAlternative + "\\data"))
 
 # Import the variable dictionary.
-varDictImport = importlib.import_module(f"projects.{projectName}.varsettings")
-variableDict = varDictImport.get_vars(projectPathAlternative)
+varDictImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
+variableDict = varDictImport.get_vars(projectPathAlternative + "\\data")
 
 # Import the function which runs the commands.
 runCommandsImport = importlib.import_module(f"projects.{projectName}.start")
@@ -726,11 +728,11 @@ while True:
             "\nVariable dictionary of the project will be updated."
         )
         editDictionary = subprocess.Popen(
-            [excelPath, f"{projectPathAlternative}\\Variable Dictionary.xlsx"]
+            [excelPath, f"{projectPathAlternative}\\data\\Variable Dictionary.xlsx"]
         )
         editDictionary.wait()
-        varDictImport = importlib.import_module(f"projects.{projectName}.varsettings")
-        variableDict = varDictImport.get_vars(projectPathAlternative)
+        varDictImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
+        variableDict = varDictImport.get_vars(projectPathAlternative + "\\data")
         continue
 
     elif command == "k":
@@ -1440,8 +1442,8 @@ while True:
             imageConditional = 1
             imageConditionalCommands = []
         while True:
-            print()
             if len(imageConditionalCommands) > 0:
+                print()
                 print_readable_commands(imageConditionalCommands)
             print(
                 f"\nEnter a command which will be executed {conditionalDecision} the image is on the screen."
@@ -1454,9 +1456,14 @@ while True:
                 )
             command = input()
             if command == "q":
-                imageConditional = 0
-                imageIf = 0
-                break
+                if len(imageConditionalCommands) > 0:
+                    imageConditional = 0
+                    imageIf = 0
+                    break
+                elif len(imageConditionalCommands) == 0:
+                    os.system("cls")
+                    print("\nEnter at least one command to quit.")
+                    continue
             if command == "-":
                 try:
                     os.system("cls")
