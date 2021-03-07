@@ -23,7 +23,6 @@ allEpisodeNames = []
 commands = []
 turn = 1
 error = 0  # Switches to "1" if there is an error. Prevents os.system("cls").
-recursionError = 0
 
 episodesRegex = re.compile(r"[^\d]+")
 
@@ -65,23 +64,31 @@ def correct_project_name(project_name):
         sys.exit()
 
 
-def key_to_action(keyToPress, change, insertion):
+def key_to_action(keyToPress, change, insertion, imageConditional):
     global turn
     currentPosition = pyautogui.position()
+    while True:
+        try:
+            pixelColor = pyautogui.pixel(currentPosition.x, currentPosition.y)
+            break
+        except OSError:
+            time.sleep(0.1)
+            continue
+
+    if imageConditional == 1:
+        global imageConditionalCommands
+        global command
+        imageConditionalCommands.append(
+            [keyinfo.keyToText[keyToPress], list((currentPosition.x, currentPosition.y)), pixelColor])
+        command = "icon"
+        return change, insertion
 
     if insertion == 1:
         commands.insert(turn-1, [])
         commands[turn-1] = [keyinfo.keyToText[keyToPress]]
         commands[turn-1].append(
             list((currentPosition.x, currentPosition.y)))
-        while True:
-            try:
-                commands[turn-1].append(
-                    pyautogui.pixel(currentPosition.x, currentPosition.y))
-                break
-            except OSError:
-                time.sleep(0.2)
-                continue
+        commands[turn - 1].append(pixelColor)
         turn = len(commands) + 1
         insertion = 0
         return change, insertion
@@ -90,14 +97,7 @@ def key_to_action(keyToPress, change, insertion):
         commands.append([])
     commands[turn-1] = [keyinfo.keyToText[keyToPress]]
     commands[turn-1].append(list((currentPosition.x, currentPosition.y)))
-    while True:
-        try:
-            commands[turn-1].append(
-                pyautogui.pixel(currentPosition.x, currentPosition.y))
-            break
-        except OSError:
-            time.sleep(0.2)
-            continue
+    commands[turn-1].append(pixelColor)
 
     if change == 1:
         change = 0
@@ -214,9 +214,9 @@ if not projectPath.exists():
     os.makedirs(projectPath)
     newDict = openpyxl.Workbook()
     newDict.save(projectPath / "Variable Dictionary.xlsx")
-    with open(projectPath / "__init__.py", "w") as package:
+    with open(projectPath / "__init__.py", "w", encoding="utf-8") as package:
         pass
-    with open(f"{projectPath}\\projectinfo.py", "w") as projectInfo:
+    with open(f"{projectPath}\\projectinfo.py", "w", encoding="utf-8") as projectInfo:
         projectInfo.write(f"projectName = '{projectName}'\n")
         projectInfo.write(f"projectPath = r'{projectPathAlternative}'\n")
         projectInfo.write(f"actionTime = {ACTION_DURATION}")
@@ -247,6 +247,9 @@ else:
 
 changeInPlace = 0
 insertionInPlace = 0
+imageConditional = 0
+imageIf = 0
+disableImageHelp = 0
 firstTime = 0
 
 
@@ -259,25 +262,23 @@ while True:
         print(f"\nProject: {projectName}")
         firstTime = 1
 
-    try:
-        print(f"\n{allEpisodeNames[episode-1]}\n")
-    except IndexError:
-        print(f"\n{episode}. Unnamed Episode\n")
-    if len(commands) > 0:
-        print_readable_commands(commands)
+    if imageConditional == 0:
+        try:
+            print(f"\n{allEpisodeNames[episode-1]}\n")
+        except IndexError:
+            print(f"\n{episode}. Unnamed Episode\n")
+        if len(commands) > 0:
+            print_readable_commands(commands)
 
-    if check_recursion(commands):
-        recursionError = 1
-    else:
-        recursionError = 0
-    if recursionError == 1:
-        print(
-            "\nWARNING! There are more than one subsequent repeat assignments."
-            + "\nExecuting these commands will cause a recursion error."
-        )
+        if check_recursion(commands):
+            print(
+                "\nWARNING! There are more than one subsequent repeat assignments."
+                + "\nExecuting these commands will cause a recursion error."
+            )
 
-    command = input()
+        command = input()
 
+    # noinspection PyUnboundLocalVariable
     if command == "zzz":
         while True:
             print("\nEnter a value for the cursor to go on x coordinate.")
@@ -369,7 +370,7 @@ while True:
     if abortReplace == 1:
         continue
 
-    if changeInPlace == 1:
+    if changeInPlace == 1 and imageConditional == 0:
         os.system("cls")
         # noinspection PyUnboundLocalVariable
         print(f"\nEnter the command which will replace \"{format_command(commands[replacedCommand-1])}\"")
@@ -416,7 +417,7 @@ while True:
     if abortInsertion == 1:
         continue
 
-    if insertionInPlace == 1:
+    if insertionInPlace == 1 and imageConditional == 0:
         os.system("cls")
         # noinspection PyUnboundLocalVariable
         if insertionCommand == 0:
@@ -693,6 +694,12 @@ while True:
             if insertionInPlace == 1:
                 turn = len(commands) + 1
                 insertionInPlaceInPlace = 0
+            if imageConditional == 1:
+                command = "icon"
+            continue
+        if imageConditional == 1:
+            imageConditionalCommands.append(["write_variable", variableToBeWritten])
+            command = "icon"
             continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
@@ -730,6 +737,10 @@ while True:
         os.system("cls")
         print("\nEnter a text input.")
         writeIt = input()
+        if imageConditional == 1:
+            imageConditionalCommands.append(["write_text", writeIt])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["write_text"]
@@ -752,6 +763,10 @@ while True:
         os.system("cls")
         print("\nEnter the URL of a website including 'https:\\\\'.")
         webURL = input()
+        if imageConditional == 1:
+            imageConditionalCommands.append(["go_website", webURL])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["go_website"]
@@ -784,6 +799,10 @@ while True:
             for hotkey in list(keyinfo.hotkeys.keys()):
                 print(f"{hotkey}: {keyinfo.hotkeys[hotkey][1]}")
             hotkeyDecision = input()
+        if imageConditional == 1:
+            imageConditionalCommands.append(["hotkey", hotkeyDecision])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["hotkey"]
@@ -817,6 +836,12 @@ while True:
             for i in holdKeys:
                 print(i)
             holdKey = input()
+        if imageConditional == 1:
+            imageConditionalCommands.append(
+                ["hold_click", holdKey, list((currentPos.x, currentPos.y))]
+            )
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["hold_click"]
@@ -851,6 +876,10 @@ while True:
             for key in list(keyinfo.keyboard.keys()):
                 print(f"{key}: {keyinfo.keyboard[key][1]}")
             keyDecision = input()
+        if imageConditional == 1:
+            imageConditionalCommands.append(["press_key", keyDecision])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = (["press_key"])
@@ -876,6 +905,10 @@ while True:
         activeWindow.maximize()
         continue
     elif command == "max":
+        if imageConditional == 1:
+            imageConditionalCommands.append(["maximize_window"])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["maximize_window"]
@@ -908,6 +941,10 @@ while True:
                 os.system("cls")
                 print("\nEnter a number.")
                 holdTime = input()
+        if imageConditional == 1:
+            imageConditionalCommands.append(["hold_mouse", holdTime])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["hold_mouse"]
@@ -942,6 +979,10 @@ while True:
                 os.system("cls")
                 print("\nEnter a number.")
                 waiting = input()
+        if imageConditional == 1:
+            imageConditionalCommands.append(["wait", waiting])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["wait"]
@@ -986,6 +1027,11 @@ while True:
                 print("\nValues must be greater than 0.")
                 continue
             break
+        if imageConditional == 1:
+            imageConditionalCommands.append(
+                ["wait_random", randomWaitingStartTime, randomWaitingEndTime])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn - 1, [])
             commands[turn - 1] = ["wait_random"]
@@ -1176,6 +1222,10 @@ while True:
                 print("\nPlease enter a number.")
                 continue
 
+        if imageConditional == 1:
+            imageConditionalCommands.append(["move_relative", xDirection, yDirection])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn - 1] = ["move_relative"]
@@ -1197,18 +1247,81 @@ while True:
         continue
 
     elif command in list(keyinfo.keyToText.keys()):
-        changeInPlace, insertionInPlace = key_to_action(command, changeInPlace, insertionInPlace)
+        changeInPlace, insertionInPlace = key_to_action(
+            command, changeInPlace, insertionInPlace, imageConditional)
+        continue
+
+    elif command == "sound":
+        os.system("cls")
+        print(
+            "\nCopy the sound file you wish to use to the 'sounds' folder"
+            + " which is located in the project directory."
+        )
+        rename = 0
+        while True:
+            if rename == 0:
+                print("\nEnter the full name of the sound file, including its extension.")
+                soundFileName = input()
+                rename = 1
+            print(f"\nThe name of the sound file is saved as '{soundFileName}'.")
+            print(
+                "\nEnter 'b' if the sound should play while other commands are running."
+                "\nEnter 'w' if the program should wait for the sound to end."
+                "\nEnter 'ren' if you want to rename the sound file."
+            )
+            soundDecision = input()
+            musicPlayStyle = ""
+            if soundDecision == "ren":
+                os.system("cls")
+                rename = 0
+                continue
+            elif soundDecision == "b":
+                musicPlayStyle = "background"
+                break
+            elif soundDecision == "w":
+                musicPlayStyle = "wait"
+                break
+            else:
+                os.system("cls")
+                print("\nThere is no such command.")
+
+        if imageConditional == 1:
+            imageConditionalCommands.append(
+                ["play_sound", f"{os.getcwd()}\\sounds\\{soundFileName}", musicPlayStyle])
+            command = "icon"
+            continue
+        if insertionInPlace == 1:
+            commands.insert(turn - 1, [])
+            commands[turn - 1] = ["play_sound"]
+            commands[turn - 1].append(f"{os.getcwd()}\\sounds\\{soundFileName}")
+            commands[turn - 1].append(musicPlayStyle)
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn - 1] = ["play_sound"]
+        commands[turn - 1].append(f"{os.getcwd()}\\sounds\\{soundFileName}")
+        commands[turn - 1].append(musicPlayStyle)
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
         continue
 
     elif command == "i":
         os.system("cls")
-        print(
-            "\nTake a screenshot of the image you wish to be found on the screen."
-            "\nThen, copy the image file to 'pictures' folder which is found in the directory of this program."
-            "\n\nPress enter after completing this process."
-        )
-        input()
-        os.system("cls")
+        if disableImageHelp == 0:
+            print(
+                "\nTake a screenshot of the image you wish to be found on the screen."
+                "\nThen, copy the image file to 'pictures' folder which is found in the directory of this program."
+                "\n\nPress enter after completing this process. Enter 'disable' to disable this tip."
+            )
+            imageTips = input()
+            if imageTips == "disable":
+                disableImageHelp = 1
+            os.system("cls")
         print("\nEnter the full name of the image file, including its extension.")
         ssName = input()
         os.system("cls")
@@ -1245,38 +1358,94 @@ while True:
             decision, ssName, changeInPlace, insertionInPlace, clickCount)
         continue
 
-    elif command == "sound":
+    elif command == "icon":
         os.system("cls")
-        print(
-            "\nCopy the sound file you wish to use to the 'sounds' folder"
-            + " which is located in the project directory."
-        )
-        while True:
-            print("\nEnter the full name of the sound file, including its extension.")
-            soundFileName = input()
-            print(
-                f"\nThe name of the sound file is saved as '{soundFileName}'."
-                "\nPress enter to continue, press some other key and enter to rename it."
-            )
-            soundNameDecision = input()
-            if soundNameDecision == "":
+        if imageConditional == 0:
+            while True:
+                print(
+                    "\nEnter an image recognition condition:"
+                    "\n\n'if': Execute the commands if the image is on the screen"
+                    "\n'if not': Execute the commands if the image is not on the screen"
+                    "\n'while': Execute the commands while the image is on the screen"
+                    "\n'while not': Execute the commands while the image is not on the screen"
+                )
+                conditionalDecision = input()
+                conditionalTypes = ["if", "if not", "while", "while not"]
+                if conditionalDecision not in conditionalTypes:
+                    os.system("cls")
+                    print("\nThere is no such conditional.")
+                    continue
                 break
-        if insertionInPlace == 1:
-            commands.insert(turn - 1, [])
-            commands[turn - 1] = ["play_sound"]
-            commands[turn-1].append(f"{os.getcwd()}\\sounds\\{soundFileName}")
-            turn = len(commands) + 1
-            insertionInPlace = 0
+            if disableImageHelp == 0:
+                print(
+                    "\nTake a screenshot of the image you wish to be found on the screen."
+                    "\nThen, copy the image file to 'pictures' folder which is found in the directory of this program."
+                    "\n\nPress enter after completing this process. Enter 'disable' to disable this tip."
+                )
+                imageTips = input()
+                if imageTips == "disable":
+                    disableImageHelp = 1
+                os.system("cls")
+            print("\nEnter the full name of the image file, including its extension.")
+            ssName = input()
+            os.system("cls")
+            print(f"\nName of the image file saved as '{ssName}'.")
+            imageConditional = 1
+            imageIf = 1
+            imageConditionalCommands = []
+        while True:
+            print()
+            if len(imageConditionalCommands) > 0:
+                print_readable_commands(imageConditionalCommands)
+            print(
+                f"\nEnter a command which will be executed {conditionalDecision} the image is on the screen."
+                "\nPress 'q' to end the command assignment, '-' to delete the last command."
+            )
+            command = input()
+            if command == "q":
+                imageConditional = 0
+                imageIf = 0
+                break
+            if command == "-":
+                try:
+                    os.system("cls")
+                    imageConditionalCommands.pop()
+                    continue
+                except IndexError:
+                    os.system("cls")
+                    print("\nThe command list is empty.")
+                    continue
+            if command not in list(keyinfo.ImageConditionalAssignments):
+                os.system("cls")
+                print("\nThere is no such command. Available commands:\n")
+                for k, v in keyinfo.ImageConditionalAssignmentsExplained.items():
+                    print(f"{k}: {v}")
+                continue
+            break
+        if imageConditional == 0 and len(imageConditionalCommands) > 0:
+            if insertionInPlace == 1:
+                commands.insert(turn - 1, [])
+                commands[turn - 1] = ["image_conditional"]
+                commands[turn - 1].append(f"{os.getcwd()}\\pictures\\{ssName}")
+                commands[turn - 1].append(imageConditionalCommands)
+                commands[turn - 1].append(conditionalDecision)
+                turn = len(commands) + 1
+                insertionInPlace = 0
+                continue
+            if changeInPlace == 0:
+                commands.append([])
+            commands[turn - 1] = ["image_conditional"]
+            commands[turn - 1].append(f"{os.getcwd()}\\pictures\\{ssName}")
+            commands[turn - 1].append(imageConditionalCommands)
+            commands[turn - 1].append(conditionalDecision)
+            if changeInPlace == 1:
+                turn = len(commands) + 1
+                changeInPlace = 0
+                continue
+            turn += 1
             continue
-        if changeInPlace == 0:
-            commands.append([])
-        commands[turn - 1] = ["play_sound"]
-        commands[turn - 1].append(f"{os.getcwd()}\\sounds\\{soundFileName}")
-        if changeInPlace == 1:
-            turn = len(commands) + 1
-            changeInPlace = 0
+        elif imageConditional == 1:
             continue
-        turn += 1
 
     elif command == "qq":
         break

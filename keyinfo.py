@@ -1,4 +1,120 @@
 import os
+from openpyxl.utils import get_column_letter
+
+helpMenu = {
+    "epi": "List all episodes",
+    "name": "Rename an episode",
+    "save": "Save the episode and move next one",
+    "go": "Go to a specific episode",
+    "copy": "Copy the content of an episode to the current one",
+    "del": "Delete a specific episode",
+    "insep": "Insert an episode after a specific episode",
+    "runep": "Run all instructions from a specified episode to the current one",
+    "run": "Run current episode",
+    "rep": "Replace a command",
+    "ins": "Insert a new command after a specified one",
+    "-": "Delete last command",
+    "--": "Delete a specific command",
+    "z": "Move the cursor where it was one command ago",
+    "zz": "Move the cursor where it was two commands ago",
+    "zzz": "Move the cursor a specific pixel",
+    "vdict": "Start Excel to edit the variable dictionary.",
+    "maxW": "Maximize current window in 3 seconds",
+    "qq": "Quit program"
+    }
+
+allAssignments = [
+    ".", "d", "r", "m", "dt", "c",
+    "..", "dd", "rr", "mm", "dtt", "cc",
+    "...", "ddd", "rrr", "mmm", "dttt", "ccc", "sound",
+    "v", "k", "hot", "p", "max", "w", "wRandom", "i", "web",
+    "su", "sd", "h", "hc", "mr", "repeat", "repeatpattern",
+    "icon"
+]
+
+allAssignmentsExplained = {
+    "Common Mouse Commands": "",
+    ".": "Left click",
+    "d": "Double click",
+    "r": "Right click",
+    "m": "Middle click",
+    "dt": "Click and drag to coordinate",
+    "c": "Move cursor to",
+    "mr": "Move cursor relative to its position",
+    "\nRepeat the last letter to perform the action if both color values match": "",
+    "dd": "Double clicks where the cursor is, if the colors match, else throws an error and waits.",
+    "ddd": "Double clicks if the colors match, if not, continues like nothing happened.",
+
+    "\nKeyboard Commands": "",
+    "v": "Assign a value",
+    "k": "Assign a text",
+    "hot": "Assign a hotkey",
+    "p": "Assign a key to press",
+
+    "\nOther": "",
+    "max": "Maximize current window",
+    "w": "Wait * seconds",
+    "wRandom": "Wait for random seconds between two values",
+    "i": "Image recognition",
+    "icon": "Conditional image recognition",
+    "su": "Scroll up",
+    "sd": "Scroll down",
+    "h": "Hold left click for * seconds",
+    "hc": "Hold and click",
+    "web": "Open a website in the default browser",
+    "sound": "Play a sound located in sounds folder",
+    "repeat": "Repeat previous command",
+    "repeatpattern": "Repeat specified pattern"
+    }
+
+imageCommandsExplained = {
+    "\nSearch until the image is found and then": "",
+    "'.'": "Left click",
+    "'r'": "Right click",
+    "'d'": "Double click",
+    "'dt'": "Drag to",
+    "'c'": "Move cursor",
+
+    "\nSearch the image once, if exists": "",
+    "'..'": "Left click",
+    "'rr'": "Right click",
+    "'dd'": "Double click",
+    "'cc'": "Move cursor"
+}
+
+ImageConditionalAssignments = [
+    ".", "d", "r", "m", "dt", "c", "mr", "v", "k",
+    "hot", "p", "max", "w", "wRandom", "web",
+    "su", "sd", "h", "hc", "sound"
+]
+
+ImageConditionalAssignmentsExplained = {
+    "Common Mouse Commands": "",
+    ".": "Left click",
+    "d": "Double click",
+    "r": "Right click",
+    "m": "Middle click",
+    "dt": "Click and drag to coordinate",
+    "c": "Move cursor to",
+    "mr": "Move cursor relative to its position",
+
+    "\nKeyboard Commands": "",
+    "v": "Assign a value",
+    "k": "Assign a text",
+    "hot": "Assign a hotkey",
+    "p": "Assign a key to press",
+
+    "\nOther": "",
+    "max": "Maximize current window",
+    "w": "Wait * seconds",
+    "wRandom": "Wait for random seconds between two values",
+    "web": "Open a website in the default browser",
+    "su": "Scroll up",
+    "sd": "Scroll down",
+    "h": "Hold left click for * seconds",
+    "hc": "Hold and click",
+    "sound": "Play a sound located in sounds folder",
+    }
 
 # For assignments which are used in key_to_action function
 keyToText = {
@@ -22,6 +138,46 @@ keyToText = {
     "dttt": "drag_to_color_else_pass",
     "su": "scroll_up",
     "sd": "scroll_down",
+    }
+
+keyToTextImage = {
+    ".": "click_image",
+    "c": "move_cursor_on_image",
+    "d": "double_click_image",
+    "r": "right_click_image",
+    "dt": "drag_to_image",
+    "..": "click_image_else_pass",
+    "cc": "cursor_on_image_else_pass",
+    "dd": "double_click_image_else_pass",
+    "rr": "right_click_image_else_pass"
+    }
+
+hotkeys = {
+    "copy": ["copy", "ctrl+C"],
+    "paste": ["paste", "ctrl+V"],
+    "sAll": ["select all", "ctrl+A"],
+    "cut": ["cut", "ctrl+X"],
+    "undo": ["undo", "ctrl+Z"],
+    "redo": ["redo", "ctrl+Y"],
+    "save": ["save", "ctrl+S"],
+    "save as": ["save as", "ctrl+shift+S"],
+    "exit": ["exit", "alt+f4"],
+    "close": ["close window", "ctrl+W"],
+    "olt": ["open last tab", "ctrl+shift+T"]
+    }
+
+keyboard = {
+    "esc": ["pressEscape", "escape"],
+    "del": ["pressDelete", "delete"],
+    "backspace": ["pressBackspace", "backspace"],
+    "enter": ["pressEnter", "enter"],
+    "tab": ["pressTab", "tab"],
+    "up": ["pressUp", "up arrow"],
+    "down": ["pressDown", "down arrow"],
+    "right": ["pressRight", "right arrow"],
+    "left": ["pressLeft", "left arrow"],
+    "home": ["pressHome", "home"],
+    "end": ["pressEnd", "end"]
     }
 
 readableCommands = {
@@ -62,12 +218,13 @@ readableCommands = {
     "hotkey": "Press",
     "press_key": "Press",
     "write_variable": "Type variable:",
-    "hold_click": "Hold {} key and click on {}",
+    "hold_click": "Hold {} key and click on '{}'",
     "move_relative": "Move mouse",
     "repeat_previous": "Repeat previous command",
     "repeat_pattern": "Repeat all commands",
     "go_website": "Go to website:",
-    "play_sound": "Play"
+    "play_sound": "Play",
+    "image_conditional": "{} '{}' is on the screen:"
 }
 
 
@@ -87,7 +244,10 @@ def format_commands(command):
         return readableCommands[command[0]].format(command[1], command[2])
 
     elif command[0] == "play_sound":
-        return readableCommands[command[0]] + f" '{os.path.basename(command[1])}'"
+        waitOrPass = ""
+        if command[2] == "wait":
+            waitOrPass = " and wait until it ends"
+        return readableCommands[command[0]] + f" '{os.path.basename(command[1])}'{waitOrPass}"
 
     elif command[0] == "write_text":
         return readableCommands[command[0]] + f" '{command[1]}'"
@@ -160,120 +320,13 @@ def format_commands(command):
     elif command[0] == "go_website":
         return readableCommands[command[0]] + f" {command[1]}"
 
-
-keyToTextImage = {
-    ".": "click_image",
-    "c": "move_cursor_on_image",
-    "d": "double_click_image",
-    "r": "right_click_image",
-    "dt": "drag_to_image",
-    "..": "click_image_else_pass",
-    "cc": "cursor_on_image_else_pass",
-    "dd": "double_click_image_else_pass",
-    "rr": "right_click_image_else_pass"
-    }
-
-hotkeys = {
-    "copy": ["copy", "ctrl+C"],
-    "paste": ["paste", "ctrl+V"],
-    "sAll": ["select all", "ctrl+A"],
-    "cut": ["cut", "ctrl+X"],
-    "undo": ["undo", "ctrl+Z"],
-    "redo": ["redo", "ctrl+Y"],
-    "save": ["save", "ctrl+S"],
-    "save as": ["save as", "ctrl+shift+S"],
-    "exit": ["exit", "alt+f4"]
-    }
-
-keyboard = {
-    "esc": ["pressEscape", "escape"],
-    "del": ["pressDelete", "delete"],
-    "backspace": ["pressBackspace", "backspace"],
-    "enter": ["pressEnter", "enter"],
-    "tab": ["pressTab", "tab"],
-    "up": ["pressUp", "up arrow"],
-    "down": ["pressDown", "down arrow"],
-    "right": ["pressRight", "right arrow"],
-    "left": ["pressLeft", "left arrow"],
-    "home": ["pressHome", "home"],
-    "end": ["pressEnd", "end"]
-    }
-
-allAssignments = [
-    ".", "d", "r", "m", "dt", "c",
-    "..", "dd", "rr", "mm", "dtt", "cc",
-    "...", "ddd", "rrr", "mmm", "dttt", "ccc", "sound",
-    "v", "k", "hot", "p", "max", "w", "wRandom", "i", "web",
-    "su", "sd", "h", "hc", "mr", "repeat", "repeatpattern",
-]
-
-allAssignmentsExplained = {
-    "Common Mouse Commands": "",
-    ".": "Left click",
-    "d": "Double click",
-    "r": "Right click",
-    "m": "Middle click",
-    "dt": "Click and drag to coordinate",
-    "c": "Move cursor to",
-    "mr": "Move cursor relative to its position",
-    "\nRepeat the last letter to perform the action if both color values match": "",
-    "dd": "Double clicks where the cursor is, if the colors match, else throws an error and waits.",
-    "ddd": "Double clicks if the colors match, if not, continues like nothing happened.",
-
-    "\nKeyboard Commands": "",
-    "v": "Assign a value",
-    "k": "Assign a text",
-    "hot": "Assign a hotkey",
-    "p": "Assign a key to press",
-
-    "\nOther": "",
-    "max": "Maximize current window",
-    "w": "Wait * seconds",
-    "wRandom": "Wait for random seconds between two values",
-    "i": "Initiate image recognition",
-    "su": "Scroll up",
-    "sd": "Scroll down",
-    "h": "Hold left click for * seconds",
-    "hc": "Hold and click",
-    "web": "Open a website in the default browser",
-    "sound": "Play a sound located in sounds folder",
-    "repeat": "Repeat previous command",
-    "repeatpattern": "Repeat specified pattern"
-    }
-
-imageCommandsExplained = {
-    "\nSearch until the image is found and then": "",
-    "'.'": "Left click",
-    "'r'": "Right click",
-    "'d'": "Double click",
-    "'dt'": "Drag to",
-    "'c'": "Move cursor",
-
-    "\nSearch the image once, if exists": "",
-    "'..'": "Left click",
-    "'rr'": "Right click",
-    "'dd'": "Double click",
-    "'cc'": "Move cursor"
-}
-
-helpMenu = {
-    "epi": "List all episodes",
-    "name": "Rename an episode",
-    "save": "Save the episode and move next one",
-    "go": "Go to a specific episode",
-    "copy": "Copy the content of an episode to the current one",
-    "del": "Delete a specific episode",
-    "insep": "Insert an episode after a specific episode",
-    "runep": "Run all instructions from a specified episode to the current one",
-    "run": "Run current episode",
-    "rep": "Replace a command",
-    "ins": "Insert a new command after a specified one",
-    "-": "Delete last command",
-    "--": "Delete a specific command",
-    "z": "Move the cursor where it was one command ago",
-    "zz": "Move the cursor where it was two commands ago",
-    "zzz": "Move the cursor a specific pixel",
-    "vdict": "Start Excel to edit the variable dictionary.",
-    "maxW": "Maximize current window in 3 seconds",
-    "qq": "Quit program"
-    }
+    elif command[0] == "image_conditional":
+        imageCommandsFormatted = []
+        for imageCommand in command[2]:
+            imageCommandsFormatted.append(format_commands(imageCommand))
+        commandBlock = ""
+        for index, imageCommand in enumerate(imageCommandsFormatted):
+            commandBlock += f"\n{' '  * 4}{get_column_letter(index + 1).lower()}. {imageCommand}"
+        return (
+            readableCommands[command[0]].format(command[3].title(), os.path.basename(command[1])) + commandBlock
+        )

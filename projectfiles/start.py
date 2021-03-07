@@ -210,6 +210,32 @@ def run_commands(actions, aTime):
             for i in range(3):
                 pyautogui.scroll(-500)
 
+        elif point[0] == "image_conditional":
+            while True:
+                try:
+                    if point[3] == "if":
+                        if pyautogui.locateOnScreen(point[1]) is not None:
+                            run_commands(point[2], aTime)
+                            break
+                        else:
+                            break
+                    elif point[3] == "if not":
+                        if pyautogui.locateOnScreen(point[1]) is None:
+                            run_commands(point[2], aTime)
+                        else:
+                            break
+                    elif point[3] == "while":
+                        while pyautogui.locateOnScreen(point[1]) is not None:
+                            run_commands(point[2], aTime)
+                        break
+                    elif point[3] == "while not":
+                        while pyautogui.locateOnScreen(point[1]) is None:
+                            run_commands(point[2], aTime)
+                        break
+                except FileNotFoundError:
+                    file_not_found(10, point[1])
+            continue
+
         elif point[0] == "click_image":
             time.sleep(0.5)
             while True:
@@ -220,16 +246,20 @@ def run_commands(actions, aTime):
                     image_not_found(5)
                 except FileNotFoundError:
                     file_not_found(10, point[1])
+            continue
 
         elif point[0] == "click_image_else_pass":
-            try:
-                pyautogui.click(point[1], duration=aTime)
-                for i in range(1, point[2]):
-                    pyautogui.click(duration=0)
-            except TypeError:
-                continue
-            except FileNotFoundError:
-                file_not_found(10, point[1])
+            while True:
+                try:
+                    pyautogui.click(point[1], duration=aTime)
+                    for i in range(1, point[2]):
+                        pyautogui.click(duration=0)
+                    break
+                except TypeError:
+                    break
+                except FileNotFoundError:
+                    file_not_found(10, point[1])
+            continue
 
         elif point[0] == "move_cursor_on_image":
             time.sleep(0.5)
@@ -241,14 +271,17 @@ def run_commands(actions, aTime):
                     image_not_found(5)
                 except FileNotFoundError:
                     file_not_found(10, point[1])
+            continue
 
         elif point[0] == "cursor_on_image_else_pass":
-            try:
-                pyautogui.moveTo(point[1], duration=aTime)
-            except TypeError:
-                continue
-            except FileNotFoundError:
-                file_not_found(10, point[1])
+            while True:
+                try:
+                    pyautogui.moveTo(point[1], duration=aTime)
+                except TypeError:
+                    break
+                except FileNotFoundError:
+                    file_not_found(10, point[1])
+            continue
 
         elif point[0] == "double_click_image":
             time.sleep(0.5)
@@ -260,14 +293,17 @@ def run_commands(actions, aTime):
                     image_not_found(5)
                 except FileNotFoundError:
                     file_not_found(10, point[1])
+            continue
 
         elif point[0] == "double_click_image_else_pass":
-            try:
-                pyautogui.doubleClick(point[1], duration=aTime)
-            except TypeError:
-                continue
-            except FileNotFoundError:
-                file_not_found(10, point[1])
+            while True:
+                try:
+                    pyautogui.doubleClick(point[1], duration=aTime)
+                except TypeError:
+                    break
+                except FileNotFoundError:
+                    file_not_found(10, point[1])
+            continue
 
         elif point[0] == "right_click_image":
             time.sleep(0.5)
@@ -279,14 +315,17 @@ def run_commands(actions, aTime):
                     image_not_found(5)
                 except FileNotFoundError:
                     file_not_found(10, point[1])
+            continue
 
         elif point[0] == "right_click_image_else_pass":
-            try:
-                pyautogui.rightClick(point[1], duration=aTime)
-            except TypeError:
-                continue
-            except FileNotFoundError:
-                file_not_found(10, point[1])
+            while True:
+                try:
+                    pyautogui.rightClick(point[1], duration=aTime)
+                except TypeError:
+                    break
+                except FileNotFoundError:
+                    file_not_found(10, point[1])
+            continue
 
         elif point[0] == "drag_to_image":
             time.sleep(0.5)
@@ -298,6 +337,7 @@ def run_commands(actions, aTime):
                     image_not_found(5)
                 except FileNotFoundError:
                     file_not_found(10, point[1])
+            continue
 
         elif point[0] == "wait":
             time.sleep(point[1])
@@ -335,8 +375,10 @@ def run_commands(actions, aTime):
                 pyautogui.hotkey("ctrl", "s")
             elif point[1] == "save as":
                 pyautogui.hotkey("ctrl", "shift", "s")
-            elif point[1] == "exit":
-                pyautogui.hotkey("alt", "f4")
+            elif point[1] == "close":
+                pyautogui.hotkey("ctrl", "w")
+            elif point[1] == "olt":
+                pyautogui.hotkey("ctrl", "shift", "t")
 
         elif point[0] == "press_key":
             time.sleep(0.2)
@@ -387,11 +429,12 @@ def run_commands(actions, aTime):
             if abortSound == 1:
                 continue
             os.system("cls")
-            print("\nPlaying sound...")
             try:
+                print("\nPlaying sound...")
                 mixer.music.play()
-                while mixer.music.get_busy():
-                    time.sleep(1)
+                if point[2] == "wait":
+                    while mixer.music.get_busy():
+                        time.sleep(1)
             except KeyboardInterrupt:
                 os.system("cls")
                 mixer.music.stop()
