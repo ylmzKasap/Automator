@@ -467,8 +467,8 @@ def run_commands(actions, aTime):
                     while True:
                         run_commands([actions[index - 1]], point[2])
                 else:
-                    for command in range(1, point[1]):
-                        run_commands([actions[index-1]], point[2])
+                    for command in range(point[1]):
+                        run_commands([actions[index - 1]], point[2])
             except pyautogui.FailSafeException:
                 continue
 
@@ -478,7 +478,7 @@ def run_commands(actions, aTime):
                     while True:
                         run_commands(actions[(point[2]-1):index], aTime)
                 else:
-                    for pattern in range(1, point[1]):
+                    for pattern in range(point[1]):
                         run_commands(actions[(point[2]-1):index], aTime)
             except pyautogui.FailSafeException:
                 continue

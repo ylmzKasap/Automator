@@ -85,7 +85,7 @@ imageCommandsExplained = {
 ImageConditionalAssignments = [
     ".", "d", "r", "m", "dt", "c", "mr", "v", "k",
     "hot", "p", "max", "w", "wRandom", "web",
-    "su", "sd", "h", "hc", "sound"
+    "su", "sd", "h", "hc", "sound", "repeat", "repeatpattern"
 ]
 
 ImageConditionalAssignmentsExplained = {
@@ -114,6 +114,8 @@ ImageConditionalAssignmentsExplained = {
     "h": "Hold left click for * seconds",
     "hc": "Hold and click",
     "sound": "Play a sound located in sounds folder",
+    "repeat": "Repeat previous command",
+    "repeatpattern": "Repeat specified pattern"
     }
 
 # For assignments which are used in key_to_action function

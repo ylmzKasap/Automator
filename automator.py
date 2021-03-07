@@ -171,7 +171,7 @@ def process_variable(variableDictionary):
 def check_recursion(commandsList):
     for i in range(len(commandsList)):
         try:
-            if 'repeatPrevious' in commandsList[i][0] and 'repeatPrevious' in commandsList[i+1][0]:
+            if 'repeat_previous' in commandsList[i][0] and 'repeat_previous' in commandsList[i+1][0]:
                 return True
         except IndexError:
             return False
@@ -1054,16 +1054,23 @@ while True:
 
     elif command == "repeat":
         os.system("cls")
-        if turn <= 1:
-            os.system("cls")
-            print("\nThere is no command behind to repeat.")
-            error = 1
-            if changeInPlace == 1:
-                changeInPlace = 0
-            if insertionInPlace == 1:
-                insertionInPlace = 0
-            turn = len(commands) + 1
-            continue
+        if imageConditional == 0:
+            if turn <= 1:
+                os.system("cls")
+                print("\nThere is no command behind to repeat.")
+                error = 1
+                if changeInPlace == 1:
+                    changeInPlace = 0
+                if insertionInPlace == 1:
+                    insertionInPlace = 0
+                turn = len(commands) + 1
+                continue
+        elif imageConditional == 1:
+            if len(imageConditionalCommands) == 0:
+                print("\nThere is no command behind to repeat.")
+                time.sleep(3)
+                command = "icon"
+                continue
         while True:
             print("\nRepeat previous command how many times?")
             repeatCount = input()
@@ -1098,6 +1105,11 @@ while True:
                 os.system("cls")
                 print("\nEnter a number or a float value.")
                 continue
+        if imageConditional == 1:
+            imageConditionalCommands.append(
+                ["repeat_previous", repeatCount, repeatInterval])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["repeat_previous"]
@@ -1120,38 +1132,68 @@ while True:
 
     elif command == "repeatpattern":
         os.system("cls")
-        if turn <= 2:
-            os.system("cls")
-            print("\nThere is no pattern behind to repeat.")
-            error = 1
-            if changeInPlace == 1:
-                changeInPlace = 0
-            if insertionInPlace == 1:
-                insertionInPlace = 0
-            turn = len(commands) + 1
-            continue
+        if imageConditional == 0:
+            if turn <= 2:
+                os.system("cls")
+                print("\nThere is no pattern behind to repeat.")
+                error = 1
+                if changeInPlace == 1:
+                    changeInPlace = 0
+                if insertionInPlace == 1:
+                    insertionInPlace = 0
+                turn = len(commands) + 1
+                continue
+        elif imageConditional == 1:
+            if len(imageConditionalCommands) <= 1:
+                os.system("cls")
+                print("\nThere is no pattern behind to repeat.")
+                time.sleep(3)
+                command = "icon"
+                continue
         while True:
             os.system("cls")
-            while True:
-                print("\nAll commands:\n")
-                print_readable_commands(commands)
-                print("\nRepeat all commands starting from which command?")
-                repeatPatternFrom = input()
-                allPossibleCommands = [i+1 for i in range(len(commands[:turn-1]))]
-                try:
-                    repeatPatternFrom = int(repeatPatternFrom)
-                    if repeatPatternFrom not in allPossibleCommands:
+            if imageConditional == 0:
+                while True:
+                    print("\nAll commands:\n")
+                    print_readable_commands(commands)
+                    print("\nRepeat all commands starting from which command?")
+                    repeatPatternFrom = input()
+                    allPossibleCommands = [i+1 for i in range(len(commands[:turn-1]))]
+                    try:
+                        repeatPatternFrom = int(repeatPatternFrom)
+                        if repeatPatternFrom not in allPossibleCommands:
+                            os.system("cls")
+                            print(
+                                "\nEnter a valid command number."
+                                + f"\nThere are {len(allPossibleCommands)} commands behind.\n"
+                            )
+                            continue
+                        break
+                    except ValueError:
                         os.system("cls")
-                        print(
-                            "\nEnter a valid command number."
-                            + f"\nThere are {len(allPossibleCommands)} commands behind.\n"
-                        )
+                        print("\nEnter a number.")
                         continue
-                    break
-                except ValueError:
-                    os.system("cls")
-                    print("\nEnter a number.")
-                    continue
+            elif imageConditional == 1:
+                while True:
+                    print("\nAll commands:\n")
+                    print_readable_commands(imageConditionalCommands)
+                    print("\nRepeat all commands starting from which command?")
+                    repeatPatternFrom = input()
+                    allPossibleCommands = [i+1 for i in range(len(imageConditionalCommands))]
+                    try:
+                        repeatPatternFrom = int(repeatPatternFrom)
+                        if repeatPatternFrom not in allPossibleCommands:
+                            os.system("cls")
+                            print(
+                                "\nEnter a valid command number."
+                                + f"\nThere are {len(allPossibleCommands)} commands behind.\n"
+                            )
+                            continue
+                        break
+                    except ValueError:
+                        os.system("cls")
+                        print("\nEnter a number.")
+                        continue
             break
         while True:
             print("\nRepeat specified pattern how many times?")
@@ -1169,6 +1211,11 @@ while True:
                     print("\nEnter a number or enter 'infinite'.")
                     continue
             break
+        if imageConditional == 1:
+            imageConditionalCommands.append(
+                ["repeat_pattern", repeatCount, repeatPatternFrom])
+            command = "icon"
+            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["repeat_pattern"]
@@ -1391,7 +1438,6 @@ while True:
             os.system("cls")
             print(f"\nName of the image file saved as '{ssName}'.")
             imageConditional = 1
-            imageIf = 1
             imageConditionalCommands = []
         while True:
             print()
@@ -1401,6 +1447,11 @@ while True:
                 f"\nEnter a command which will be executed {conditionalDecision} the image is on the screen."
                 "\nPress 'q' to end the command assignment, '-' to delete the last command."
             )
+            if check_recursion(imageConditionalCommands):
+                print(
+                    "\nWARNING! There are more than one subsequent repeat assignments."
+                    + "\nExecuting these commands will cause a recursion error."
+                )
             command = input()
             if command == "q":
                 imageConditional = 0
@@ -1431,6 +1482,7 @@ while True:
                 commands[turn - 1].append(conditionalDecision)
                 turn = len(commands) + 1
                 insertionInPlace = 0
+                imageConditionalCommands = []
                 continue
             if changeInPlace == 0:
                 commands.append([])
@@ -1441,8 +1493,10 @@ while True:
             if changeInPlace == 1:
                 turn = len(commands) + 1
                 changeInPlace = 0
+                imageConditionalCommands = []
                 continue
             turn += 1
+            imageConditionalCommands = []
             continue
         elif imageConditional == 1:
             continue
