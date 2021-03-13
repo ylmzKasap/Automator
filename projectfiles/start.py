@@ -58,7 +58,8 @@ skipCommands = 0
 
 
 def run_commands(actions, aTime, *args):
-    variableDict, rowsOfVariables = varsettings.get_vars(f"{projectinfo.projectPath}\\data")
+    variableDict = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
+    rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
     columnIndex = 0
     for index, point in enumerate(actions):
         try:
@@ -519,13 +520,18 @@ def run_commands(actions, aTime, *args):
                 continue
 
         elif point[0] == "repeat_commands_for_wildcards":
-            uniqueVariableCount = len(rowsOfVariables)
+            uniqueVariableCount = len(rowsOfWildcards)
             wildcardRow = 0
+            for i, cmd in enumerate(actions[index+1:]):
+                if actions[index + i][0] == "end_repeat_commands_for_wildcards":
+                    wildcardGap = i
+                    break
+            wildcardLoopList = actions[(index + 1):(index + wildcardGap + 1)]
             for i in range(uniqueVariableCount):
                 wildcardColumn = 0
-                run_commands(actions[point[1]:point[2] + 1], aTime, wildcardRow, wildcardColumn)
+                run_commands(wildcardLoopList, aTime, wildcardRow, wildcardColumn)
                 wildcardRow += 1
-            skipCommands = point[2] - point[1] + 1
+            skipCommands = wildcardGap
             continue
 
         elif point[0] == "end_repeat_commands_for_wildcards":
@@ -537,13 +543,16 @@ def run_commands(actions, aTime, *args):
             wildColumn = argsList[1]
             wildColumn += columnIndex
             try:
-                pyautogui.write(str(rowsOfVariables[wildRow][wildColumn]))
+                pyautogui.write(str(rowsOfWildcards[wildRow][wildColumn]))
             except IndexError:
                 break
             columnIndex += 1
 
         elif point[0] == "go_website":
             webbrowser.open(point[1])
+
+        elif point[0] == "launch":
+            os.startfile(point[1])
 
         else:
             print(f"\nCould not find {point[0]} in the execution file.")

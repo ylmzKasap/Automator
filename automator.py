@@ -224,6 +224,8 @@ if not projectPath.exists():
     os.makedirs(projectPath / "data")
     newDict = openpyxl.Workbook()
     newDict.save(projectPath / "data" / "Variable Dictionary.xlsx")
+    newDict = openpyxl.Workbook()
+    newDict.save(projectPath / "data" / "Wildcard Dictionary.xlsx")
     with open(projectPath / "__init__.py", "w", encoding="utf-8") as package:
         pass
     with open(projectPath / "data" / "__init__.py", "w", encoding="utf-8") as dataPackage:
@@ -239,7 +241,11 @@ if not projectPath.exists():
 
 # Import the variables.
 varDictImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
-variableDict, rowsOfVariables = varDictImport.get_vars(projectPathAlternative + "\\data")
+variableDict = varDictImport.get_vars(projectPathAlternative + "\\data", "variable")[0]
+
+# Import the wildcards.
+wildcardImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
+rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
 
 # Import the function which runs the commands.
 runCommandsImport = importlib.import_module(f"projects.{projectName}.start")
@@ -769,7 +775,29 @@ while True:
             continue
         editDictionary.wait()
         varDictImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
-        variableDict, rowsOfVariables = varDictImport.get_vars(projectPathAlternative + "\\data")
+        variableDict = varDictImport.get_vars(projectPathAlternative + "\\data", "variable")[0]
+        continue
+    elif command == "wdict":
+        os.system("cls")
+        excelPath = "C:/Program Files (x86)/Microsoft Office/root/Office16/EXCEL.exe"
+        print(
+            "\nSave and close the excel file after you add the wildcards you want."
+            "\nWildcard dictionary of the project will be updated."
+        )
+        try:
+            editDictionary = subprocess.Popen(
+                [excelPath, f"{projectPathAlternative}\\data\\Wildcard Dictionary.xlsx"]
+            )
+        except FileNotFoundError:
+            os.system("cls")
+            print("\nCould not locate the executable file of Excel.")
+            print("Please go to your project's folder and launch the wildcard dictionary manually.")
+            print("\nPress enter to continue.")
+            input("> ").strip()
+            continue
+        editDictionary.wait()
+        wildcardImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
+        rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
         continue
 
     elif command == "k":
@@ -1276,10 +1304,6 @@ while True:
         continue
 
     elif command == "wild":
-        if imageConditional == 1:
-            imageConditionalCommands.append(["wildcard"])
-            command = "icon"
-            continue
         if insertionInPlace == 1:
             commands.insert(turn-1, [])
             commands[turn-1] = ["wildcard"]
@@ -1316,7 +1340,7 @@ while True:
             continue
 
         maxRowLength = 0
-        for rows in rowsOfVariables:
+        for rows in rowsOfWildcards:
             rowLength = 0
             for column in rows:
                 rowLength += 1
@@ -1397,10 +1421,51 @@ while True:
             continue
 
         commands.insert(startingCommand - 1, ["repeat_commands_for_wildcards"])
-        commands[startingCommand - 1].append(startingCommand)
-        commands[startingCommand - 1].append(endingCommand)
         commands.insert(endingCommand + 1, ["end_repeat_commands_for_wildcards"])
         turn += 2
+        continue
+
+    elif command == "l":
+        os.system("cls")
+        abortLaunch = 0
+        while True:
+            print("\nEnter the full path of the file which will be launched.")
+            launchFilePath = input("> ").strip()
+            launchFilePath = launchFilePath.strip("\"\'")
+            if launchFilePath == "q":
+                abortLaunch = 1
+                break
+            if not os.path.exists(launchFilePath):
+                os.system("cls")
+                print(f"\n{launchFilePath} does not exist.")
+                continue
+            break
+
+        if abortLaunch == 1:
+            abortLaunch = 0
+            continue
+
+        if imageConditional == 1:
+            imageConditionalCommands.append(
+                ["launch", launchFilePath])
+            command = "icon"
+            continue
+        if insertionInPlace == 1:
+            commands.insert(turn - 1, [])
+            commands[turn - 1] = ["launch"]
+            commands[turn - 1].append(launchFilePath)
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn - 1] = ["launch"]
+        commands[turn - 1].append(launchFilePath)
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
         continue
 
     elif command == "mr":

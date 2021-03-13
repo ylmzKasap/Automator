@@ -1,8 +1,11 @@
 import openpyxl
 
 
-def get_vars(projectPath):
-    workbookName = "Variable Dictionary.xlsx"
+def get_vars(projectPath, workbookType):
+    if workbookType == "variable":
+        workbookName = "Variable Dictionary.xlsx"
+    elif workbookType == "wildcard":
+        workbookName = "Wildcard Dictionary.xlsx"
 
     wb = openpyxl.load_workbook(f"{projectPath}\\{workbookName}")
     sheet = wb.active

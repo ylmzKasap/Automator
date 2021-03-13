@@ -19,6 +19,7 @@ helpMenu = {
     "zz": "Move the cursor where it was two commands ago",
     "zzz": "Move the cursor a specific pixel",
     "vdict": "Start Excel to edit the variable dictionary.",
+    "wdict": "Start Excel to edit wildcards",
     "maxW": "Maximize current window in 3 seconds",
     "qq": "Quit program"
     }
@@ -29,7 +30,7 @@ allAssignments = [
     "...", "ddd", "rrr", "mmm", "dttt", "ccc", "sound",
     "v", "k", "hot", "p", "max", "w", "wRandom", "i", "web",
     "su", "sd", "h", "hc", "mr", "repeat", "repeatpattern",
-    "icon", "wild", "rfw"
+    "icon", "wild", "rfw", "l"
 ]
 
 allAssignmentsExplained = {
@@ -54,6 +55,7 @@ allAssignmentsExplained = {
 
     "\nOther": "",
     "max": "Maximize current window",
+    "l": "Launch a file",
     "w": "Wait * seconds",
     "wRandom": "Wait for random seconds between two values",
     "i": "Image recognition",
@@ -86,7 +88,7 @@ imageCommandsExplained = {
 
 imageConditionalAssignments = [
     ".", "d", "r", "m", "dt", "c", "mr", "v", "k",
-    "hot", "p", "max", "w", "wRandom", "web", "i", "wild",
+    "hot", "p", "max", "w", "wRandom", "web", "i", "l",
     "su", "sd", "h", "hc", "sound", "repeat", "repeatpattern"
 ]
 
@@ -105,10 +107,10 @@ imageConditionalAssignmentsExplained = {
     "k": "Assign a text",
     "hot": "Assign a hotkey",
     "p": "Assign a key to press",
-    "wild": "Assign a wildcard",
 
     "\nOther": "",
     "max": "Maximize current window",
+    "l": "Launch a file",
     "w": "Wait * seconds",
     "wRandom": "Wait for random seconds between two values",
     "web": "Open a website in the default browser",
@@ -233,7 +235,8 @@ readableCommands = {
     "image_conditional": "",
     "wildcard": "Write wildcard",
     "repeat_commands_for_wildcards": " -- Start repeating commands for the amount of wildcards --",
-    "end_repeat_commands_for_wildcards": "-- End repeating commands for the amount of wildcards --"
+    "end_repeat_commands_for_wildcards": "-- End repeating commands for the amount of wildcards --",
+    "launch": "Launch"
 }
 
 
@@ -359,6 +362,9 @@ def format_commands(command):
 
     elif command[0] == "go_website":
         return readableCommands[command[0]] + f" {command[1]}"
+
+    elif command[0] == "launch":
+        return readableCommands[command[0]] + f" '{os.path.basename(command[1])}'"
 
     elif command[0] == "image_conditional":
         imageCommandsFormatted = []
