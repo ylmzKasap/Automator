@@ -29,7 +29,7 @@ allAssignments = [
     "...", "ddd", "rrr", "mmm", "dttt", "ccc", "sound",
     "v", "k", "hot", "p", "max", "w", "wRandom", "i", "web",
     "su", "sd", "h", "hc", "mr", "repeat", "repeatpattern",
-    "icon"
+    "icon", "wild", "rfw"
 ]
 
 allAssignmentsExplained = {
@@ -50,6 +50,7 @@ allAssignmentsExplained = {
     "k": "Assign a text",
     "hot": "Assign a hotkey",
     "p": "Assign a key to press",
+    "wild": "Assign a wildcard",
 
     "\nOther": "",
     "max": "Maximize current window",
@@ -64,7 +65,8 @@ allAssignmentsExplained = {
     "web": "Open a website in the default browser",
     "sound": "Play a sound located in sounds folder",
     "repeat": "Repeat previous command",
-    "repeatpattern": "Repeat specified pattern"
+    "repeatpattern": "Repeat specified pattern",
+    "rfw": "Repeat the pattern for the rows of wildcards available"
     }
 
 imageCommandsExplained = {
@@ -82,13 +84,13 @@ imageCommandsExplained = {
     "'cc'": "Move cursor"
 }
 
-ImageConditionalAssignments = [
+imageConditionalAssignments = [
     ".", "d", "r", "m", "dt", "c", "mr", "v", "k",
-    "hot", "p", "max", "w", "wRandom", "web",
+    "hot", "p", "max", "w", "wRandom", "web", "i", "wild",
     "su", "sd", "h", "hc", "sound", "repeat", "repeatpattern"
 ]
 
-ImageConditionalAssignmentsExplained = {
+imageConditionalAssignmentsExplained = {
     "Common Mouse Commands": "",
     ".": "Left click",
     "d": "Double click",
@@ -99,16 +101,18 @@ ImageConditionalAssignmentsExplained = {
     "mr": "Move cursor relative to its position",
 
     "\nKeyboard Commands": "",
-    "v": "Assign a value",
+    "v": "Assign a variable",
     "k": "Assign a text",
     "hot": "Assign a hotkey",
     "p": "Assign a key to press",
+    "wild": "Assign a wildcard",
 
     "\nOther": "",
     "max": "Maximize current window",
     "w": "Wait * seconds",
     "wRandom": "Wait for random seconds between two values",
     "web": "Open a website in the default browser",
+    "i": "Image recognition",
     "su": "Scroll up",
     "sd": "Scroll down",
     "h": "Hold left click for * seconds",
@@ -226,15 +230,24 @@ readableCommands = {
     "repeat_pattern": "Repeat all commands",
     "go_website": "Go to website:",
     "play_sound": "Play",
-    "image_conditional": "{} '{}' is on the screen:"
+    "image_conditional": "",
+    "wildcard": "Write wildcard",
+    "repeat_commands_for_wildcards": " -- Start repeating commands for the amount of wildcards --",
+    "end_repeat_commands_for_wildcards": "-- End repeating commands for the amount of wildcards --"
 }
 
 
 def format_commands(command):
-    if command[0] == "left_click" or command[0] == "move_cursor" or command[0] == "double_click" \
-            or command[0] == "right_click" or command[0] == "middle_click" or command[0] == "drag_to":
-        return f"{readableCommands[command[0]]}" \
-               + f" | x: {command[1][0]} y: {command[1][1]}"
+    if (
+            command[0] == "left_click"
+            or command[0] == "move_cursor"
+            or command[0] == "double_click"
+            or command[0] == "right_click"
+            or command[0] == "middle_click"
+            or command[0] == "drag_to"):
+        return (
+                f"{readableCommands[command[0]]}"
+                + f" | x: {command[1][0]} y: {command[1][1]}")
 
     elif command[0] == "wait" or command[0] == "hold_mouse":
         if command[1] >= 2:
@@ -273,12 +286,23 @@ def format_commands(command):
     elif command[0] == "repeat_pattern":
         if command[1] == "infinite":
             return readableCommands[command[0]] + f" {command[1]} times, starting from command {command[2]}"
+        elif command[1] == "wildcard":
+            return (
+                    readableCommands[command[0]]
+                    + f" for the rows of variables, starting from command {command[2]}"
+            )
         elif command[1] > 1:
             return readableCommands[command[0]] + f" {command[1]} times, starting from command {command[2]}"
         elif command[1] <= 1:
             return readableCommands[command[0]] + f" {command[1]} time, starting from command {command[2]}"
 
-    elif command[0] == "scroll_up" or command[0] == "scroll_down" or command[0] == "maximize_window":
+    elif (
+            command[0] == "scroll_up"
+            or command[0] == "scroll_down"
+            or command[0] == "maximize_window"
+            or command[0] == "wildcard"
+            or command[0] == "repeat_commands_for_wildcards"
+            or command[0] == "end_repeat_commands_for_wildcards"):
         return readableCommands[command[0]]
 
     elif command[0] == "move_relative":
@@ -295,8 +319,12 @@ def format_commands(command):
         return (f"{readableCommands[command[0]]} {abs(command[1])} pixels {xDirection}"
                 + f" and {abs(command[2])} pixels {yDirection}")
 
-    elif command[0] == "click_image" or command[0] == "move_cursor_on_image" or command[0] == "drag_to_image" \
-            or command[0] == "double_click_image" or command[0] == "right_click_image":
+    elif (
+            command[0] == "click_image"
+            or command[0] == "move_cursor_on_image"
+            or command[0] == "drag_to_image"
+            or command[0] == "double_click_image"
+            or command[0] == "right_click_image"):
         return readableCommands[command[0]] + f" '{os.path.basename(command[1])}', else wait"
 
     elif command[0] == "click_image_else_pass":
@@ -305,19 +333,29 @@ def format_commands(command):
         elif command[2] <= 1:
             return readableCommands[command[0]] + f" '{os.path.basename(command[1])}' {command[2]} time, else pass"
 
-    elif command[0] == "cursor_on_image_else_pass" \
-            or command[0] == "double_click_image_else_pass" or command[0] == "right_click_image_else_pass":
+    elif (
+            command[0] == "cursor_on_image_else_pass"
+            or command[0] == "double_click_image_else_pass"
+            or command[0] == "right_click_image_else_pass"):
         return readableCommands[command[0]] + f" '{os.path.basename(command[1])}', else pass"
 
-    elif command[0] == "click_color" or command[0] == "click_color_else_pass" \
-            or command[0] == "move_cursor_color" or command[0] == "move_cursor_color_else_pass" \
-            or command[0] == "double_click_color" or command[0] == "double_click_color_else_pass" \
-            or command[0] == "right_click_color" or command[0] == "right_click_color_else_pass" \
-            or command[0] == "middle_click_color" or command[0] == "middle_click_color_else_pass" \
-            or command[0] == "drag_to_color" or command[0] == "drag_to_color_else_pass":
+    elif (
+            command[0] == "click_color"
+            or command[0] == "click_color_else_pass"
+            or command[0] == "move_cursor_color"
+            or command[0] == "move_cursor_color_else_pass"
+            or command[0] == "double_click_color"
+            or command[0] == "double_click_color_else_pass"
+            or command[0] == "right_click_color"
+            or command[0] == "right_click_color_else_pass"
+            or command[0] == "middle_click_color"
+            or command[0] == "middle_click_color_else_pass"
+            or command[0] == "drag_to_color"
+            or command[0] == "drag_to_color_else_pass"):
         spaceBonus = 7 - (len(str(command[1][0])) + len(str(command[1][0])))
-        return f"{readableCommands[command[0]]}" \
-               + f" | x: {command[1][0]} y: {command[1][1]} {' ' * (spaceBonus-1)}| rgb{command[2]}"
+        return (
+                f"{readableCommands[command[0]]}"
+                + f" | x: {command[1][0]} y: {command[1][1]} {' ' * (spaceBonus-1)}| rgb{command[2]}")
 
     elif command[0] == "go_website":
         return readableCommands[command[0]] + f" {command[1]}"
@@ -329,6 +367,13 @@ def format_commands(command):
         commandBlock = ""
         for index, imageCommand in enumerate(imageCommandsFormatted):
             commandBlock += f"\n{' '  * 4}{get_column_letter(index + 1).lower()}. {imageCommand}"
-        return (
-            readableCommands[command[0]].format(command[3].title(), os.path.basename(command[1])) + commandBlock
-        )
+        if command[3] == "if" or command[3] == "while":
+            return (
+                    f"{command[3].title()} {os.path.basename(command[1])}"
+                    f" is on the screen: {commandBlock}"
+            )
+        elif command[3] == "if not" or command[3] == "while not":
+            return (
+                    f"{command[3].split()[0].title()} {os.path.basename(command[1])}"
+                    f" is not on the screen: {commandBlock}"
+            )

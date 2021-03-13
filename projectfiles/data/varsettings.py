@@ -7,15 +7,26 @@ def get_vars(projectPath):
     wb = openpyxl.load_workbook(f"{projectPath}\\{workbookName}")
     sheet = wb.active
 
-    allColumns = list(sheet.columns)
+    allRows = list(sheet.rows)
     words = []
     wordsDict = {}
 
-    for column in allColumns:  # Get words
-        for index, row in enumerate(column):
-            if row.value is not None:
-                words.append(row.value)
+    # Get all words in the file, separated by rows
+    for row in allRows:
+        words.append([])
+        for index, column in enumerate(row):
+            if column.value is not None:
+                words[-1].append(column.value)
 
-    for index, word in enumerate(words):
-        wordsDict[f"v{index+1}"] = word
-    return wordsDict
+    # Delete empty rows
+    for i, row in enumerate(words):
+        if not row:
+            del words[i]
+
+    variableIndex = 0
+    for rows in words:
+        for column in rows:
+            wordsDict[f"v{variableIndex+1}"] = str(column)
+            variableIndex += 1
+
+    return wordsDict, words

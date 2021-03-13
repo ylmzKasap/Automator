@@ -1,8 +1,8 @@
-import time
-import os
-import webbrowser
-import random
 import importlib
+import os
+import random
+import time
+import webbrowser
 
 import pyautogui
 
@@ -35,9 +35,9 @@ def incorrect_color(point):
 
 def file_not_found(wait, picture):
     waitTime = wait
-    os.system("cls")
-    print(f"\n{os.path.basename(picture)}, is not in 'pictures' folder.")
     for i in range(waitTime):
+        os.system("cls")
+        print(f"\n{os.path.basename(picture)}, is not in 'pictures' folder.")
         print(f"\nNew attempt in {waitTime} seconds.")
         waitTime -= 1
         time.sleep(1)
@@ -45,17 +45,28 @@ def file_not_found(wait, picture):
 
 def image_not_found(wait):
     waitTime = wait
-    os.system("cls")
-    print("\nImage is not found on screen")
     for i in range(waitTime):
+        os.system("cls")
+        print("\nImage is not found on screen.")
         print(f"\nNew attempt in {waitTime} seconds.")
         waitTime -= 1
         time.sleep(1)
+    print("\nLocating the image...")
 
 
-def run_commands(actions, aTime):
-    variableDict = varsettings.get_vars(f"{projectinfo.projectPath}\\data")
+skipCommands = 0
+
+
+def run_commands(actions, aTime, *args):
+    variableDict, rowsOfVariables = varsettings.get_vars(f"{projectinfo.projectPath}\\data")
+    columnIndex = 0
     for index, point in enumerate(actions):
+        try:
+            if skipCommands >= 1:
+                skipCommands -= 1
+                continue
+        except UnboundLocalError:
+            pass
         colorNotFound = 0
         if point[0] == "left_click":
             pyautogui.click(point[1], duration=aTime)
@@ -341,10 +352,33 @@ def run_commands(actions, aTime):
             continue
 
         elif point[0] == "wait":
-            time.sleep(point[1])
+            try:
+                waitingTime = point[1]
+                for i in range(waitingTime, 0, -1):
+                    os.system("cls")
+                    if waitingTime == 1:
+                        timeExpression = "second"
+                    else:
+                        timeExpression = "seconds"
+                    print(f"\n{waitingTime} {timeExpression} left. Waiting...")
+                    time.sleep(1)
+                    waitingTime -= 1
+            except KeyboardInterrupt:
+                continue
         elif point[0] == "wait_random":
             randomWaitingTime = random.randint(point[1], point[2])
-            time.sleep(randomWaitingTime)
+            try:
+                for i in range(randomWaitingTime, 0, -1):
+                    os.system("cls")
+                    if randomWaitingTime == 1:
+                        timeExpression = "second"
+                    else:
+                        timeExpression = "seconds"
+                    print(f"\n{randomWaitingTime} {timeExpression} left. Waiting...")
+                    time.sleep(1)
+                    randomWaitingTime -= 1
+            except KeyboardInterrupt:
+                continue
 
         elif point[0] == "maximize_window":
             time.sleep(0.2)
@@ -483,6 +517,30 @@ def run_commands(actions, aTime):
                         run_commands(actions[(point[2]-1):index], aTime)
             except pyautogui.FailSafeException:
                 continue
+
+        elif point[0] == "repeat_commands_for_wildcards":
+            uniqueVariableCount = len(rowsOfVariables)
+            wildcardRow = 0
+            for i in range(uniqueVariableCount):
+                wildcardColumn = 0
+                run_commands(actions[point[1]:point[2] + 1], aTime, wildcardRow, wildcardColumn)
+                wildcardRow += 1
+            skipCommands = point[2] - point[1] + 1
+            continue
+
+        elif point[0] == "end_repeat_commands_for_wildcards":
+            continue
+
+        elif point[0] == "wildcard":
+            argsList = list(args)
+            wildRow = argsList[0]
+            wildColumn = argsList[1]
+            wildColumn += columnIndex
+            try:
+                pyautogui.write(str(rowsOfVariables[wildRow][wildColumn]))
+            except IndexError:
+                break
+            columnIndex += 1
 
         elif point[0] == "go_website":
             webbrowser.open(point[1])
