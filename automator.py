@@ -855,6 +855,27 @@ while True:
             rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
         continue
 
+    elif command == "click":
+        if imageConditional == 1:
+            imageConditionalCommands.append(["blind_click"])
+            command = "icon"
+            continue
+        if insertionInPlace == 1:
+            commands.insert(turn - 1, [])
+            commands[turn - 1] = ["blind_click"]
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn - 1] = ["blind_click"]
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
+        continue
+
     elif command == "k":
         os.system("cls")
         print("\nEnter a text input.")
@@ -909,17 +930,14 @@ while True:
 
     elif command == "hot":
         os.system("cls")
-        print("\nChoose a hotkey.")
-        print("\nAvailable hotkeys:")
-        for hotkey in list(keyinfo.hotkeys.keys()):
-            print(f"{hotkey}: {keyinfo.hotkeys[hotkey]}")
+        print("\nEnter a hotkey in the following format: 'ctrl shift s'")
         hotkeyDecision = input("> ").strip()
-        while hotkeyDecision not in list(keyinfo.hotkeys.keys()):
+        while hotkeyDecision not in keyinfo.availableHotkeys:
             os.system("cls")
-            print(f"\nThere is no hotkey labeled as {hotkeyDecision}.")
-            print("\nAvailable hotkeys:")
-            for hotkey in list(keyinfo.hotkeys.keys()):
-                print(f"{hotkey}: {keyinfo.hotkeys[hotkey]}")
+            print(f"\nThere is no hotkey called '{hotkeyDecision}'.")
+            print("\nSome example hotkeys:")
+            for h in keyinfo.hotkeyExamples:
+                print(h)
             hotkeyDecision = input("> ").strip()
         if imageConditional == 1:
             imageConditionalCommands.append(["hotkey", hotkeyDecision])
@@ -987,16 +1005,30 @@ while True:
     elif command == "p":
         os.system("cls")
         print("\nPress which key?")
-        print("\nAvailable keys:")
-        for key in list(keyinfo.keyboard.keys()):
-            print(f"{key}: {keyinfo.keyboard[key][1]}")
+        print("\nSome key examples:")
+        for i in range(0, len(keyinfo.keyboardKeysExamples), 3):
+            try:
+                print(
+                    f"{keyinfo.keyboardKeysExamples[i]}, "
+                    + f"{keyinfo.keyboardKeysExamples[i + 1]}, "
+                    + f"{keyinfo.keyboardKeysExamples[i + 2]}"
+                )
+            except IndexError:
+                pass
         keyDecision = input("> ").strip()
-        while keyDecision not in list(keyinfo.keyboard.keys()):
+        while keyDecision not in list(keyinfo.availableKeyboardKeys):
             os.system("cls")
             print(f"\nThere is no such key labeled as {keyDecision}.")
-            print("\nAvailable keys:")
-            for key in list(keyinfo.keyboard.keys()):
-                print(f"{key}: {keyinfo.keyboard[key][1]}")
+            print("\nSome key examples:")
+            for i in range(0, len(keyinfo.keyboardKeysExamples), 3):
+                try:
+                    print(
+                        f"{keyinfo.keyboardKeysExamples[i]}, "
+                        + f"{keyinfo.keyboardKeysExamples[i + 1]}, "
+                        + f"{keyinfo.keyboardKeysExamples[i + 2]}"
+                    )
+                except IndexError:
+                    pass
             keyDecision = input("> ").strip()
         if imageConditional == 1:
             imageConditionalCommands.append(["press_key", keyDecision])
@@ -1518,8 +1550,8 @@ while True:
         while True:
             print(
                 "\nEnter a value to move the. cursor relatively on y-axis."
-                + "\n100: Go 100 pixels up."
-                + "\n-100: Go 100 pixels down."
+                + "\n-100: Go 100 pixels up."
+                + "\n100: Go 100 pixels down."
             )
             yDirection = input("> ").strip()
             try:
@@ -1915,8 +1947,11 @@ while True:
         # Calculate the maximum number of columns.
         maxRowLength = 0
         if databaseDecision == "w":
-            maxRowLength = len(max(rowsOfOriginalWildcards, key=len))
+            wb = openpyxl.load_workbook(projectPath / "data" / "Wildcard Database.xlsx")
+            sheet = wb.active
+            maxRowLength = len(list(sheet.columns))
             dataType = "wildcard"
+            wb.close()
         elif databaseDecision == "v":
             maxRowLength = len(max(rowsOfVariables, key=len))
             dataType = "variable"

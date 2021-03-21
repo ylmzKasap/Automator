@@ -27,12 +27,12 @@ helpMenu = {
     }
 
 allAssignments = [
-    ".", "d", "r", "m", "dt", "c",
+    ".", "d", "r", "m", "dt", "c", "click",
     "..", "dd", "rr", "mm", "dtt", "cc",
     "...", "ddd", "rrr", "mmm", "dttt", "ccc", "sound",
     "v", "k", "hot", "p", "max", "w", "wRandom", "i", "web",
     "su", "sd", "h", "hc", "mr", "repeat", "repeatpattern",
-    "icon", "wild", "rfw", "l", "search"
+    "icon", "wild", "rfw", "l"
 ]
 
 allAssignmentsExplained = {
@@ -64,6 +64,7 @@ allAssignmentsExplained = {
     "icon": "Conditional image recognition",
     "su": "Scroll up",
     "sd": "Scroll down",
+    "click": "Click wherever the cursor is",
     "h": "Hold left click for * seconds",
     "hc": "Hold and click",
     "web": "Open a website in the default browser",
@@ -71,7 +72,6 @@ allAssignmentsExplained = {
     "repeat": "Repeat previous command",
     "repeatpattern": "Repeat specified pattern",
     "rfw": "Repeat the pattern for the rows of wildcards available",
-    "search": "Search a directory for the amount of wildcards, copy the matching files."
     }
 
 imageCommandsExplained = {
@@ -90,7 +90,7 @@ imageCommandsExplained = {
 }
 
 imageConditionalAssignments = [
-    ".", "d", "r", "m", "dt", "c", "mr", "v", "k",
+    ".", "d", "r", "m", "dt", "c", "mr", "v", "k", "click",
     "hot", "p", "max", "w", "wRandom", "web", "i", "l",
     "su", "sd", "h", "hc", "sound", "repeat", "repeatpattern"
 ]
@@ -120,6 +120,7 @@ imageConditionalAssignmentsExplained = {
     "i": "Image recognition",
     "su": "Scroll up",
     "sd": "Scroll down",
+    "click": "Click wherever the cursor is",
     "h": "Hold left click for * seconds",
     "hc": "Hold and click",
     "sound": "Play a sound located in sounds folder",
@@ -163,33 +164,39 @@ keyToTextImage = {
     "rr": "right_click_image_else_pass"
     }
 
-hotkeys = {
-    "copy": "ctrl+C",
-    "paste": "ctrl+V",
-    "sAll": "ctrl+A",
-    "cut": "ctrl+X",
-    "undo": "ctrl+Z",
-    "redo": "ctrl+Y",
-    "save": "ctrl+S",
-    "save as": "ctrl+shift+S",
-    "exit": "alt+f4",
-    "close": "ctrl+W",
-    "olt": "ctrl+shift+T"
-    }
+hotkeyExamples = [
+    "ctrl c", "ctrl v", "ctrl a", "win d"
+    "ctrl shift s", "alt f4", "alt tab"
+    ]
 
-keyboard = {
-    "esc": ["pressEscape", "escape"],
-    "del": ["pressDelete", "delete"],
-    "backspace": ["pressBackspace", "backspace"],
-    "enter": ["pressEnter", "enter"],
-    "tab": ["pressTab", "tab"],
-    "up": ["pressUp", "up arrow"],
-    "down": ["pressDown", "down arrow"],
-    "right": ["pressRight", "right arrow"],
-    "left": ["pressLeft", "left arrow"],
-    "home": ["pressHome", "home"],
-    "end": ["pressEnd", "end"]
-    }
+availableHotkeys = [
+    "ctrl c", "ctrl v",  "ctrl x", "ctrl a", "ctrl z",
+    "alt tab", "win d", "ctrl w", "ctrl n", "ctrl s",
+    "ctrl shift n", "win .", "win b", "win m",
+    "ctrl alt delete", "win r", "win shift s", "ctrl b",
+    "ctrl u", "ctrl I",  "ctrl shift a", "shift enter",
+    "ctrl shift s", "alt f4", "ctrl shift t", "ctrl r",
+    "ctrl shift c", "ctrl shift o", "win alt g"
+]
+
+keyboardKeysExamples = [
+    "esc", "delete", "backspace", "enter",
+    "tab", "up", "down", "right", "left",
+    "home", "end", "f1", "a", "b", "c",
+    "1", "2", "3", "win", "volumemute", "volumeup",
+    "volumedown",  "printscreen", "space"
+    ]
+
+availableKeyboardKeys = [
+    "esc", "del", "backspace", "enter", "tab", "up", "down",
+    "right", "left", "home", "end", "volumemute", "volumeup",
+    "volumedown", "f1", "f2", "f3", "f4", "f5", "f6", "f7",
+    "f8", "f9", "f10", "f11", "f12", "a", "b", "c", "d", "e",
+    "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
+    "q", "r", "s", "t", "u", "v", "w", "x", "w", "z", "0",
+    "1", "2", "3", "4", "5", "6", "7", "8", "9", "-", ".", ",", "\"",
+    "printscreen", "win", "space"
+]
 
 readableCommands = {
     "left_click": "Left click",
@@ -240,7 +247,8 @@ readableCommands = {
     "repeat_commands_for_wildcards": " --Start repeating for wildcards--",
     "end_repeat_commands_for_wildcards": "--End repeating for wildcards--",
     "launch": "Launch",
-    "search_files": "Search '{}' for"
+    "search_files": "Search '{}' for",
+    "blind_click": "Click wherever the cursor is"
 }
 
 
@@ -274,7 +282,7 @@ def format_commands(command):
     elif command[0] == "write_text":
         return readableCommands[command[0]] + f" '{command[1]}'"
     elif command[0] == "hotkey":
-        return readableCommands[command[0]] + f" '{hotkeys[command[1]]}' hotkey"
+        return readableCommands[command[0]] + f" '{command[1]}' hotkey"
     elif command[0] == "press_key":
         return readableCommands[command[0]] + f" '{command[1]}' key"
     elif command[0] == "write_variable":
@@ -309,7 +317,9 @@ def format_commands(command):
             or command[0] == "maximize_window"
             or command[0] == "wildcard"
             or command[0] == "repeat_commands_for_wildcards"
-            or command[0] == "end_repeat_commands_for_wildcards"):
+            or command[0] == "end_repeat_commands_for_wildcards"
+            or command[0] == "blind_click"
+    ):
         return readableCommands[command[0]]
 
     elif command[0] == "move_relative":

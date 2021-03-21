@@ -5,7 +5,6 @@ import os
 import openpyxl
 
 from . import searchinfo
-from . import varsettings
 
 
 def delete_folder_contents(folder):
@@ -24,14 +23,24 @@ def copy_wildcards(projectPath):
     print("\nLocating files...")
     importlib.reload(searchinfo)
     if searchinfo.databaseDecision == "w":
-        rowsOfWords = varsettings.get_vars(f"{projectPath}\\data", "wildcard")[1]
         wb = openpyxl.load_workbook(f"{projectPath}\\data\\Wildcard Database.xlsx")
     elif searchinfo.databaseDecision == "v":
-        rowsOfWords = varsettings.get_vars(f"{projectPath}\\data", "variable")[1]
         wb = openpyxl.load_workbook(f"{projectPath}\\data\\Variable Database.xlsx")
 
     sheet = wb.active
-    maxRowLength = len(max(rowsOfWords, key=len))
+    emptyColumns = []
+    occupiedColumns = []
+    for columnIndex, columns in enumerate(list(sheet.columns)):
+        columnOccupied = 0
+        for row in columns:
+            if row.value is not None:
+                columnOccupied = 1
+                occupiedColumns.append(columnIndex + 1)
+                break
+        if columnOccupied == 0:
+            emptyColumns.append(columnIndex + 1)
+
+    maxRowLength = len(list(sheet.columns))
 
     foundFiles = []
     notFoundDict = {}
@@ -76,7 +85,12 @@ def copy_wildcards(projectPath):
         shutil.copy(filePath, f"{projectPath}\\search")
 
     # Add files to the database
-    columnIndex = maxRowLength + 1
+    if len(emptyColumns) >= 1:
+        columnIndex = emptyColumns[0]
+        del emptyColumns[0]
+    else:
+        columnIndex = maxRowLength + 1
+
     for wordsList in foundFiles:
         rowIndex = 1
         wordIndex = 1
@@ -87,7 +101,14 @@ def copy_wildcards(projectPath):
                 sheet.cell(column=columnIndex, row=rowIndex).value = wordsList[wordIndex]
                 rowIndex += 1
                 wordIndex += 1
-        columnIndex += 1
+
+        if len(emptyColumns) >= 1:
+            columnIndex = emptyColumns[0]
+            del emptyColumns[0]
+        else:
+            columnIndex += 1
+            while columnIndex in occupiedColumns:
+                columnIndex += 1
 
     wb.save(f"{projectPath}\\data\\Searched Database.xlsx")
     return "Files are successfully copied."

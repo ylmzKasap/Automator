@@ -6,6 +6,7 @@ import time
 import webbrowser
 
 import pyautogui
+import pyperclip
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 from pygame import mixer, error
@@ -372,6 +373,10 @@ def run_commands(actions, aTime, *args):
                     file_not_found(10, point[1])
             continue
 
+        elif point[0] == "blind_click":
+            pyautogui.click()
+            continue
+
         elif point[0] == "wait":
             try:
                 waitingTime = point[1]
@@ -412,56 +417,18 @@ def run_commands(actions, aTime, *args):
             pyautogui.mouseUp()
 
         elif point[0] == "write_text":
-            pyautogui.write(point[1], 0.01)
+            pyperclip.copy(point[1])
+            time.sleep(0.5)
+            pyautogui.hotkey("ctrl", "v")
 
         elif point[0] == "hotkey":
-            if point[1] == "copy":
-                pyautogui.hotkey("ctrl", "c")
-            elif point[1] == "paste":
-                pyautogui.hotkey("ctrl", "v")
-            elif point[1] == "sAll":
-                pyautogui.hotkey("ctrl", "a")
-            elif point[1] == "cut":
-                pyautogui.hotkey("ctrl", "x")
-            elif point[1] == "undo":
-                pyautogui.hotkey("ctrl", "z")
-            elif point[1] == "redo":
-                pyautogui.hotkey("ctrl", "y")
-            elif point[1] == "save":
-                pyautogui.hotkey("ctrl", "s")
-            elif point[1] == "save as":
-                pyautogui.hotkey("ctrl", "shift", "s")
-            elif point[1] == "exit":
-                pyautogui.hotkey("alt", "f4")
-            elif point[1] == "close":
-                pyautogui.hotkey("ctrl", "w")
-            elif point[1] == "olt":
-                pyautogui.hotkey("ctrl", "shift", "t")
+            separatedHotkey = point[1].split()
+            time.sleep(0.1)
+            pyautogui.hotkey(*separatedHotkey)
 
         elif point[0] == "press_key":
-            time.sleep(0.2)
-            if point[1] == "esc":
-                pyautogui.press("esc")
-            elif point[1] == "del":
-                pyautogui.press("delete")
-            elif point[1] == "enter":
-                pyautogui.press("enter")
-            elif point[1] == "tab":
-                pyautogui.press("tab")
-            elif point[1] == "up":
-                pyautogui.press("up")
-            elif point[1] == "down":
-                pyautogui.press("down")
-            elif point[1] == "right":
-                pyautogui.press("right")
-            elif point[1] == "left":
-                pyautogui.press("left")
-            elif point[1] == "home":
-                pyautogui.press("home")
-            elif point[1] == "end":
-                pyautogui.press("end")
-            elif point[1] == "backspace":
-                pyautogui.press("backspace")
+            time.sleep(0.1)
+            pyautogui.press(point[1])
 
         elif point[0] == "play_sound":
             abortSound = 0
@@ -500,7 +467,9 @@ def run_commands(actions, aTime, *args):
 
         elif point[0] == "write_variable":
             try:
-                pyautogui.write(variableDb[point[1]], 0.01)
+                pyperclip.copy(variableDb[point[1]])
+                time.sleep(0.5)
+                pyautogui.hotkey("ctrl", "v")
             except KeyError:
                 keyNumber = point[1].strip('v')
                 print(f"\nVariable {keyNumber} is not found."
@@ -580,7 +549,9 @@ def run_commands(actions, aTime, *args):
                 break
             wildColumn += columnIndex
             try:
-                pyautogui.write(str(rowsOfWildcards[wildRow][wildColumn]))
+                pyperclip.copy(str(rowsOfWildcards[wildRow][wildColumn]))
+                time.sleep(0.5)
+                pyautogui.hotkey("ctrl", "v")
             except IndexError:
                 break
             columnIndex += 1

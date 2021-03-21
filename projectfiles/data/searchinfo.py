@@ -1,3 +1,3 @@
 assignedSearches = []
 
-databaseDecision = ''
+databaseDecision = 'w'

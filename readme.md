@@ -3,6 +3,7 @@
 
 ### Required third party modules:
 - PyAutoGUI
+- pyperclip
 - openpyxl
 - pygame
 - Pillow
