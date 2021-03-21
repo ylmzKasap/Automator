@@ -18,8 +18,10 @@ helpMenu = {
     "z": "Move the cursor where it was one command ago",
     "zz": "Move the cursor where it was two commands ago",
     "zzz": "Move the cursor a specific pixel",
-    "vdict": "Start Excel to edit the variable dictionary.",
-    "wdict": "Start Excel to edit wildcards",
+    "vdb": "Start Excel to edit the variable database",
+    "wdb": "Start Excel to edit wildcard database",
+    "search": "Adjust the file search settings and copy the necessary files",
+    "sc": "Search and copy the files in a specified database & adjust variables and wildcards",
     "maxW": "Maximize current window in 3 seconds",
     "qq": "Quit program"
     }
@@ -30,7 +32,7 @@ allAssignments = [
     "...", "ddd", "rrr", "mmm", "dttt", "ccc", "sound",
     "v", "k", "hot", "p", "max", "w", "wRandom", "i", "web",
     "su", "sd", "h", "hc", "mr", "repeat", "repeatpattern",
-    "icon", "wild", "rfw", "l"
+    "icon", "wild", "rfw", "l", "search"
 ]
 
 allAssignmentsExplained = {
@@ -68,7 +70,8 @@ allAssignmentsExplained = {
     "sound": "Play a sound located in sounds folder",
     "repeat": "Repeat previous command",
     "repeatpattern": "Repeat specified pattern",
-    "rfw": "Repeat the pattern for the rows of wildcards available"
+    "rfw": "Repeat the pattern for the rows of wildcards available",
+    "search": "Search a directory for the amount of wildcards, copy the matching files."
     }
 
 imageCommandsExplained = {
@@ -161,17 +164,17 @@ keyToTextImage = {
     }
 
 hotkeys = {
-    "copy": ["copy", "ctrl+C"],
-    "paste": ["paste", "ctrl+V"],
-    "sAll": ["select all", "ctrl+A"],
-    "cut": ["cut", "ctrl+X"],
-    "undo": ["undo", "ctrl+Z"],
-    "redo": ["redo", "ctrl+Y"],
-    "save": ["save", "ctrl+S"],
-    "save as": ["save as", "ctrl+shift+S"],
-    "exit": ["exit", "alt+f4"],
-    "close": ["close window", "ctrl+W"],
-    "olt": ["open last tab", "ctrl+shift+T"]
+    "copy": "ctrl+C",
+    "paste": "ctrl+V",
+    "sAll": "ctrl+A",
+    "cut": "ctrl+X",
+    "undo": "ctrl+Z",
+    "redo": "ctrl+Y",
+    "save": "ctrl+S",
+    "save as": "ctrl+shift+S",
+    "exit": "alt+f4",
+    "close": "ctrl+W",
+    "olt": "ctrl+shift+T"
     }
 
 keyboard = {
@@ -234,9 +237,10 @@ readableCommands = {
     "play_sound": "Play",
     "image_conditional": "",
     "wildcard": "Write wildcard",
-    "repeat_commands_for_wildcards": " -- Start repeating commands for the amount of wildcards --",
-    "end_repeat_commands_for_wildcards": "-- End repeating commands for the amount of wildcards --",
-    "launch": "Launch"
+    "repeat_commands_for_wildcards": " --Start repeating for wildcards--",
+    "end_repeat_commands_for_wildcards": "--End repeating for wildcards--",
+    "launch": "Launch",
+    "search_files": "Search '{}' for"
 }
 
 
@@ -270,7 +274,7 @@ def format_commands(command):
     elif command[0] == "write_text":
         return readableCommands[command[0]] + f" '{command[1]}'"
     elif command[0] == "hotkey":
-        return readableCommands[command[0]] + f" '{hotkeys[command[1]][1]}' hotkey"
+        return readableCommands[command[0]] + f" '{hotkeys[command[1]]}' hotkey"
     elif command[0] == "press_key":
         return readableCommands[command[0]] + f" '{command[1]}' key"
     elif command[0] == "write_variable":
@@ -375,11 +379,17 @@ def format_commands(command):
             commandBlock += f"\n{' '  * 4}{get_column_letter(index + 1).lower()}. {imageCommand}"
         if command[3] == "if" or command[3] == "while":
             return (
-                    f"{command[3].title()} {os.path.basename(command[1])}"
+                    f"{command[3].title()} '{os.path.basename(command[1])}'"
                     f" is on the screen: {commandBlock}"
             )
         elif command[3] == "if not" or command[3] == "while not":
             return (
-                    f"{command[3].split()[0].title()} {os.path.basename(command[1])}"
+                    f"{command[3].split()[0].title()} '{os.path.basename(command[1])}'"
                     f" is not on the screen: {commandBlock}"
             )
+
+    elif command[0] == "search_files":
+        return (
+                readableCommands[command[0]].format(os.path.basename(command[1]))
+                + f" {', '.join(command[2])} files and copy all."
+        )

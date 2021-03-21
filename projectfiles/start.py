@@ -1,6 +1,7 @@
 import importlib
 import os
 import random
+import sys
 import time
 import webbrowser
 
@@ -10,12 +11,14 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 from pygame import mixer, error
 
 if __name__ == "__main__":
-    from data import varsettings
+    from data import varsettings, copywildcards, searchinfo
     import projectinfo
     import savedProject
 else:
     from . import projectinfo
     varsettings = importlib.import_module(f"projects.{projectinfo.projectName}.data.varsettings")
+    copywildcards = importlib.import_module(f"projects.{projectinfo.projectName}.data.copywildcards")
+    searchinfo = importlib.import_module(f"projects.{projectinfo.projectName}.data.searchinfo")
 
 
 def incorrect_color(point):
@@ -58,8 +61,25 @@ skipCommands = 0
 
 
 def run_commands(actions, aTime, *args):
-    variableDict = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
-    rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
+    if __name__ == "main":
+        if searchinfo.databaseDecision == "v":
+            variableDb = varsettings.get_vars(f".\\data", "search")[0]
+        else:
+            variableDb = varsettings.get_vars(f".\\data", "variable")[0]
+        if searchinfo.databaseDecision == "w":
+            rowsOfWildcards = varsettings.get_vars(f".\\data", "search")[1]
+        else:
+            rowsOfWildcards = varsettings.get_vars(f".\\data", "wildcard")[1]
+    else:
+        if searchinfo.databaseDecision == "v":
+            variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[0]
+        else:
+            variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
+        if searchinfo.databaseDecision == "w":
+            rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[1]
+        else:
+            rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
+
     columnIndex = 0
     for index, point in enumerate(actions):
         try:
@@ -399,7 +419,7 @@ def run_commands(actions, aTime, *args):
                 pyautogui.hotkey("ctrl", "c")
             elif point[1] == "paste":
                 pyautogui.hotkey("ctrl", "v")
-            elif point[1] == "select all":
+            elif point[1] == "sAll":
                 pyautogui.hotkey("ctrl", "a")
             elif point[1] == "cut":
                 pyautogui.hotkey("ctrl", "x")
@@ -411,6 +431,8 @@ def run_commands(actions, aTime, *args):
                 pyautogui.hotkey("ctrl", "s")
             elif point[1] == "save as":
                 pyautogui.hotkey("ctrl", "shift", "s")
+            elif point[1] == "exit":
+                pyautogui.hotkey("alt", "f4")
             elif point[1] == "close":
                 pyautogui.hotkey("ctrl", "w")
             elif point[1] == "olt":
@@ -455,7 +477,7 @@ def run_commands(actions, aTime, *args):
                         f"\n\nPlease make sure that '{os.path.basename(point[1])}' is in the directory above."
                         "\nPress enter to try again, press some other key to skip this step."
                     )
-                    decision = input()
+                    decision = input("> ")
                     if decision == "":
                         os.system("cls")
                         continue
@@ -478,14 +500,14 @@ def run_commands(actions, aTime, *args):
 
         elif point[0] == "write_variable":
             try:
-                pyautogui.write(variableDict[point[1]], 0.01)
+                pyautogui.write(variableDb[point[1]], 0.01)
             except KeyError:
                 keyNumber = point[1].strip('v')
                 print(f"\nVariable {keyNumber} is not found."
-                      "\nPlease check the number of variables you entered to the dictionary and here."
+                      "\nPlease check the number of variables you entered to the database and here."
                       "\nPress enter to continue. The program will not run."
                       )
-                input()
+                input("> ")
                 return
 
         elif point[0] == "hold_click":
@@ -523,10 +545,19 @@ def run_commands(actions, aTime, *args):
             uniqueVariableCount = len(rowsOfWildcards)
             wildcardRow = 0
             for i, cmd in enumerate(actions[index+1:]):
-                if actions[index + i][0] == "end_repeat_commands_for_wildcards":
-                    wildcardGap = i
+                if actions[index + i+1][0] == "end_repeat_commands_for_wildcards":
+                    wildcardGap = i+1
                     break
-            wildcardLoopList = actions[(index + 1):(index + wildcardGap + 1)]
+            try:
+                wildcardLoopList = actions[(index + 1):(index + wildcardGap + 1)]
+            except UnboundLocalError:
+                os.system("cls")
+                print(
+                    "\nError: Please make sure that wildcard repetition assignments"
+                    + " start and end correctly."
+                )
+                input("> ")
+                break
             for i in range(uniqueVariableCount):
                 wildcardColumn = 0
                 run_commands(wildcardLoopList, aTime, wildcardRow, wildcardColumn)
@@ -539,8 +570,14 @@ def run_commands(actions, aTime, *args):
 
         elif point[0] == "wildcard":
             argsList = list(args)
-            wildRow = argsList[0]
-            wildColumn = argsList[1]
+            try:
+                wildRow = argsList[0]
+                wildColumn = argsList[1]
+            except IndexError:
+                os.system("cls")
+                print("\nIndexError: Wildcard assignments need to be wrapped by 'rfw' command.")
+                input("> ")
+                break
             wildColumn += columnIndex
             try:
                 pyautogui.write(str(rowsOfWildcards[wildRow][wildColumn]))
@@ -556,9 +593,14 @@ def run_commands(actions, aTime, *args):
 
         else:
             print(f"\nCould not find {point[0]} in the execution file.")
-            input()
+            input("> ")
 
 
 if __name__ == "__main__":
+    fileCondition = copywildcards.copy_wildcards(projectinfo.projectPath)
+    if fileCondition != "Files are successfully copied.":
+        print(fileCondition)
+        input("> ")
+        sys.exit()
     for command in savedProject.allCommandsSave:
         run_commands(command, projectinfo.actionTime)

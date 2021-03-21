@@ -1,0 +1,3 @@
+assignedSearches = []
+
+databaseDecision = ''

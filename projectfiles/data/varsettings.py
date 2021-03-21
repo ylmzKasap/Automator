@@ -3,9 +3,11 @@ import openpyxl
 
 def get_vars(projectPath, workbookType):
     if workbookType == "variable":
-        workbookName = "Variable Dictionary.xlsx"
+        workbookName = "Variable Database.xlsx"
     elif workbookType == "wildcard":
-        workbookName = "Wildcard Dictionary.xlsx"
+        workbookName = "Wildcard Database.xlsx"
+    elif workbookType == "search":
+        workbookName = "Searched Database.xlsx"
 
     wb = openpyxl.load_workbook(f"{projectPath}\\{workbookName}")
     sheet = wb.active
