@@ -29,10 +29,6 @@ episodesRegex = re.compile(r"[^\d]+")
 # Create projects folder.
 if not os.path.exists(f"{os.getcwd()}\\projects"):
     os.mkdir(f"{os.getcwd()}\\projects")
-if not os.path.exists(f"{os.getcwd()}\\sounds"):
-    os.mkdir(f"{os.getcwd()}\\sounds")
-if not os.path.exists(f"{os.getcwd()}\\pictures"):
-    os.mkdir(f"{os.getcwd()}\\pictures")
 
 currentProjects = [
     folder for folder in os.listdir(f"{os.getcwd()}\\projects")
@@ -116,14 +112,14 @@ def key_to_image_action(key, imageName, change, insertion, imageConditional, cli
         global command
         global imageConditionalCommands
         imageConditionalCommands.append(
-            [keyinfo.keyToTextImage[key], f"{os.getcwd()}\\pictures\\{imageName}", clickAmount])
+            [keyinfo.keyToTextImage[key], imageName, clickAmount])
         command = "icon"
         return change, insertion
 
     if insertion == 1:
         commands.insert(turn - 1, [])
         commands[turn - 1] = [keyinfo.keyToTextImage[key]]
-        commands[turn - 1].append(f"{os.getcwd()}\\pictures\\{imageName}")
+        commands[turn - 1].append(imageName)
         commands[turn - 1].append(clickAmount)
         turn = len(commands) + 1
         insertion = 0
@@ -132,7 +128,7 @@ def key_to_image_action(key, imageName, change, insertion, imageConditional, cli
     if change == 0:
         commands.append([])
     commands[turn - 1] = [keyinfo.keyToTextImage[key]]
-    commands[turn - 1].append(f"{os.getcwd()}\\pictures\\{imageName}")
+    commands[turn - 1].append(imageName)
     commands[turn - 1].append(clickAmount)
     if change == 1:
         change = 0
@@ -223,6 +219,8 @@ projectPathAlternative = f"{os.getcwd()}\\projects\\{projectName}"
 if not projectPath.exists():
     os.makedirs(projectPath / "data")
     os.mkdir(projectPath / "search")
+    os.mkdir(projectPath / "sounds")
+    os.mkdir(projectPath / "images")
     newDb = openpyxl.Workbook()
     newDb.save(projectPath / "data" / "Variable Database.xlsx")
     newDb = openpyxl.Workbook()
@@ -234,10 +232,10 @@ if not projectPath.exists():
     with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
         searchInfo.write("assignedSearches = []")
         searchInfo.write(f"\n\ndatabaseDecision = ''")
+        searchInfo.write(f"\n\ncopyState = 0")
     with open(f"{projectPath}\\projectinfo.py", "w", encoding="utf-8") as projectInfo:
         projectInfo.write(f"projectName = '{projectName}'\n")
         projectInfo.write(f"projectPath = r'{projectPathAlternative}'\n")
-        projectInfo.write(f"disableImageTips = 0\n")
         projectInfo.write(f"actionTime = {ACTION_DURATION}")
     # Copy project files to project path.
     shutil.copy(f".\\projectfiles\\start.py", projectPathAlternative)
@@ -245,6 +243,7 @@ if not projectPath.exists():
     shutil.copy(f".\\projectfiles\\data\\copywildcards.py", (projectPathAlternative + "\\data"))
 
 searchImport = importlib.import_module(f"projects.{projectName}.data.searchinfo")
+copyState = searchImport.copyState
 
 # Import the variables.
 varDbImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
@@ -258,11 +257,11 @@ rowsOfVariables = varDbImport.get_vars(projectPathAlternative + "\\data", "varia
 # Import the wildcards.
 wildcardImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
 if searchImport.databaseDecision == "w":
-    rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "search")[1]
+    wildcardDb = wildcardImport.get_vars(projectPathAlternative + "\\data", "search")[1]
 else:
-    rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+    wildcardDb = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
 
-rowsOfOriginalWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
 
 # Import wildcard & variable search function
 copyWildcardsImport = importlib.import_module(f"projects.{projectName}.data.copywildcards")
@@ -270,19 +269,6 @@ copyWildcardsImport = importlib.import_module(f"projects.{projectName}.data.copy
 # Import the function which runs the commands.
 runCommandsImport = importlib.import_module(f"projects.{projectName}.start")
 run_commands = runCommandsImport.run_commands
-
-# Import project info to see preferences
-projectInfo = importlib.import_module(f"projects.{projectName}.projectinfo")
-disableImageTips = projectInfo.disableImageTips
-
-
-def disable_image_hints():
-    with open(f"{projectPath}\\projectinfo.py", "w", encoding="utf-8") as projectInfo:
-        projectInfo.write(f"projectName = '{projectName}'\n")
-        projectInfo.write(f"projectPath = r'{projectPathAlternative}'\n")
-        projectInfo.write(f"disableImageTips = 1\n")
-        projectInfo.write(f"actionTime = {ACTION_DURATION}")
-
 
 saveName = "savedProject.py"
 
@@ -367,17 +353,46 @@ while True:
             print("First enter 'search' to make the variable adjustments.")
             error = 1
             continue
-        print(copyWildcardsImport.copy_wildcards(projectPathAlternative))
+
+        with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
+            searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
+            searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
+            searchInfo.write(f"\n\ncopyState = {copyState}")
+
+        copyWildcardStatus = copyWildcardsImport.copy_wildcards(projectPathAlternative)
+        if copyWildcardStatus[1] is True:
+            print()
+            print(copyWildcardStatus[0])
+            copyState = 1
+            with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
+                searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
+                searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
+                searchInfo.write(f"\n\ncopyState = {copyState}")
+            input("> ")
+        elif copyWildcardStatus[1] is False:
+            print()
+            print(copyWildcardStatus[0])
+            copyState = 0
+            with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
+                searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
+                searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
+                searchInfo.write(f"\n\ncopyState = {copyState}")
+            input("> ")
+            continue
+
         importlib.reload(searchImport)
         if searchImport.databaseDecision == "v":
-            variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[0]
-        else:
+            wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+            if searchImport.copyState:
+                variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[0]
+            else:
+                variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "variable")[0]
+        elif searchImport.databaseDecision == "w":
             variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "variable")[0]
-        if searchImport.databaseDecision == "w":
-            rowsOfWildcards = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[1]
-        else:
-            rowsOfWildcards = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
-        input("> ")
+            if searchImport.copyState:
+                wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[1]
+            else:
+                wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
         continue
 
     if command == "help":
@@ -771,8 +786,10 @@ while True:
 
     if command == "v":
         os.system("cls")
+        importlib.reload(searchImport)
         if searchImport.databaseDecision == "v":
-            variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[0]
+            if searchImport.copyState:
+                variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[0]
         variableToBeWritten = process_variable(variableDb)
         if variableToBeWritten is None:
             if changeInPlace == 1:
@@ -848,11 +865,39 @@ while True:
             continue
         editDatabase.wait()
         wildcardImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
-        rowsOfOriginalWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+        rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+
+        importlib.reload(searchImport)
         if searchImport.databaseDecision == "w":
-            rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "search")[1]
-        else:
-            rowsOfWildcards = wildcardImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+            if searchImport.copyState:
+                wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[1]
+            else:
+                wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+
+    elif command == "com":
+        os.system("cls")
+        print("\nEnter a comment.")
+        comment = input("> ").strip()
+        if imageConditional == 1:
+            imageConditionalCommands.append(["comment", comment])
+            command = "icon"
+            continue
+        if insertionInPlace == 1:
+            commands.insert(turn - 1, [])
+            commands[turn - 1] = ["comment"]
+            commands[turn - 1].append(comment)
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn - 1] = ["comment"]
+        commands[turn - 1].append(comment)
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
         continue
 
     elif command == "click":
@@ -1123,8 +1168,8 @@ while True:
             print("\nWait for how many seconds?")
             waiting = input("> ").strip()
             try:
-                waiting = int(waiting)
-                if waiting < 1:
+                waiting = float(waiting)
+                if waiting <= 0:
                     os.system("cls")
                     print("\nEnter a positive value.")
                     continue
@@ -1168,17 +1213,19 @@ while True:
                 print("\nPlease enter two values as seconds, separated by a space.")
                 continue
             try:
-                randomWaitingStartTime = randomWaitList[0]
-                randomWaitingEndTime = randomWaitList[1]
-                randomWaitingStartTime = int(randomWaitingStartTime)
-                randomWaitingEndTime = int(randomWaitingEndTime)
+                randomWaitingStartTime = int(randomWaitList[0])
+                randomWaitingEndTime = int(randomWaitList[1])
             except ValueError:
                 os.system("cls")
-                print(f"\nValues must be numbers.")
+                print(f"\nValues must be integers.")
                 continue
-            if randomWaitingStartTime < 0 or randomWaitingEndTime < 0:
+            if randomWaitingStartTime <= 0 or randomWaitingEndTime <= 0:
                 os.system("cls")
                 print("\nValues must be greater than 0.")
+                continue
+            if randomWaitingEndTime <= randomWaitingStartTime:
+                os.system("cls")
+                print("\nThe second value must be greater than the first value.")
                 continue
             break
         if imageConditional == 1:
@@ -1364,6 +1411,7 @@ while True:
                     os.system("cls")
                     print("\nEnter a number or enter 'infinite'.")
                     continue
+            break
 
         if imageConditional == 1:
             imageConditionalCommands.append(
@@ -1421,7 +1469,7 @@ while True:
             if commands[i][0] == "wildcard":
                 wildcardCount += 1
 
-        maxRowLength = len(max(rowsOfWildcards, key=len))
+        maxRowLength = len(max(wildcardDb, key=len))
 
         allPossibleCommands = [str(i+1) for i in range(len(commands))]
 
@@ -1593,17 +1641,26 @@ while True:
 
     elif command == "sound":
         os.system("cls")
+        abortSound = 0
         print(
             "\nCopy the sound file you wish to use to the 'sounds' folder"
             + " which is located in the project directory."
         )
-        rename = 0
+        os.startfile(Path(projectPathAlternative, "sounds"))
         while True:
-            if rename == 0:
-                print("\nEnter the full name of the sound file, including its extension.")
-                soundFileName = input("> ").strip()
-                rename = 1
+            print("\nEnter the full name of the sound file, including its extension.")
+            soundFileName = input("> ").strip()
+
+            if soundFileName == "q":
+                abortSound = 1
+                break
+
+            if not Path(projectPathAlternative, "sounds", soundFileName).exists():
                 os.system("cls")
+                print(f"\nThere is no sound file called '{soundFileName}' in the project folder.")
+                continue
+
+            os.system("cls")
             print(f"\nThe name of the sound file is saved as '{soundFileName}'.")
             print(
                 "\nEnter 'b' if the sound should play while other commands are running."
@@ -1614,7 +1671,6 @@ while True:
             musicPlayStyle = ""
             if soundDecision == "ren":
                 os.system("cls")
-                rename = 0
                 continue
             elif soundDecision == "b":
                 musicPlayStyle = "background"
@@ -1626,15 +1682,19 @@ while True:
                 os.system("cls")
                 print("\nThere is no such command.")
 
+        if abortSound == 1:
+            abortSound = 0
+            continue
+
         if imageConditional == 1:
             imageConditionalCommands.append(
-                ["play_sound", f"{os.getcwd()}\\sounds\\{soundFileName}", musicPlayStyle])
+                ["play_sound", soundFileName, musicPlayStyle])
             command = "icon"
             continue
         if insertionInPlace == 1:
             commands.insert(turn - 1, [])
             commands[turn - 1] = ["play_sound"]
-            commands[turn - 1].append(f"{os.getcwd()}\\sounds\\{soundFileName}")
+            commands[turn - 1].append(soundFileName)
             commands[turn - 1].append(musicPlayStyle)
             turn = len(commands) + 1
             insertionInPlace = 0
@@ -1642,7 +1702,7 @@ while True:
         if changeInPlace == 0:
             commands.append([])
         commands[turn - 1] = ["play_sound"]
-        commands[turn - 1].append(f"{os.getcwd()}\\sounds\\{soundFileName}")
+        commands[turn - 1].append(soundFileName)
         commands[turn - 1].append(musicPlayStyle)
         if changeInPlace == 1:
             turn = len(commands) + 1
@@ -1653,21 +1713,29 @@ while True:
 
     elif command == "i":
         os.system("cls")
-        if disableImageTips == 0:
+        abortImage = 0
+        while True:
             print(
-                "\nTake a screenshot of the image you wish to be found on the screen."
-                "\nThen, copy the image file to 'pictures' folder which is found in the directory of this program."
-                "\n\nPress enter after completing this process. Enter 'disable' to disable this tip."
-            )
-            imageTips = input("> ").strip()
-            if imageTips == "disable":
-                disableImageTips = 1
-                disable_image_hints()
-            os.system("cls")
-        print("\nEnter the full name of the image file, including its extension.")
-        ssName = input("> ").strip()
+                  "\nCopy the image file to the 'images' folder."
+                  "\nThen, enter the full name of the image file including its extension."
+                  )
+            os.startfile(Path(projectPathAlternative, "images"))
+            ssName = input("> ").strip()
+
+            if ssName == "q":
+                abortImage = 1
+                break
+
+            if not Path(projectPathAlternative, "images", ssName).exists():
+                os.system("cls")
+                print(f"\nThere is no image file called {ssName} in the 'images' folder.")
+                continue
+            break
+
+        if abortImage == 1:
+            continue
+
         os.system("cls")
-        print(f"\nName of the image file saved as '{ssName}'.")
         while True:
             print("\nAvailable Commands:")
             for k, v in keyinfo.imageCommandsExplained.items():
@@ -1702,6 +1770,8 @@ while True:
 
     elif command == "icon":
         os.system("cls")
+        abortImage = 0
+
         if imageConditional == 0:
             while True:
                 print(
@@ -1719,21 +1789,29 @@ while True:
                     continue
                 break
             os.system("cls")
-            if disableImageTips == 0:
+
+            while True:
                 print(
-                    "\nTake a screenshot of the image you wish to be found on the screen."
-                    "\nThen, copy the image file to 'pictures' folder which is found in the directory of this program."
-                    "\n\nPress enter after completing this process. Enter 'disable' to disable this tip."
+                    "\nCopy the image file to the 'images' folder."
+                    "\nThen, enter the full name of the image file including its extension."
                 )
-                imageTips = input("> ").strip()
-                if imageTips == "disable":
-                    disableImageTips = 1
-                    disable_image_hints()
-                os.system("cls")
-            print("\nEnter the full name of the image file, including its extension.")
-            imageName = input("> ").strip()
+                os.startfile(Path(projectPathAlternative, "images"))
+                imageName = input("> ").strip()
+
+                if imageName == "q":
+                    abortImage = 1
+                    break
+
+                if not Path(projectPathAlternative, "images", imageName).exists():
+                    os.system("cls")
+                    print(f"\nThere is no image file called {imageName} in the 'images' folder.")
+                    continue
+                break
+
+            if abortImage == 1:
+                continue
+
             os.system("cls")
-            print(f"\nName of the image file saved as '{imageName}'.")
             imageConditional = 1
             imageConditionalCommands = []
         while True:
@@ -1778,7 +1856,7 @@ while True:
             if insertionInPlace == 1:
                 commands.insert(turn - 1, [])
                 commands[turn - 1] = ["image_conditional"]
-                commands[turn - 1].append(f"{os.getcwd()}\\pictures\\{imageName}")
+                commands[turn - 1].append(imageName)
                 commands[turn - 1].append(imageConditionalCommands)
                 commands[turn - 1].append(conditionalDecision)
                 turn = len(commands) + 1
@@ -1788,7 +1866,7 @@ while True:
             if changeInPlace == 0:
                 commands.append([])
             commands[turn - 1] = ["image_conditional"]
-            commands[turn - 1].append(f"{os.getcwd()}\\pictures\\{imageName}")
+            commands[turn - 1].append(imageName)
             commands[turn - 1].append(imageConditionalCommands)
             commands[turn - 1].append(conditionalDecision)
             if changeInPlace == 1:
@@ -1824,7 +1902,7 @@ while True:
 
         # Return if the selected database is empty.
         if databaseDecision == "w":
-            if len(rowsOfOriginalWildcards) == 0:
+            if len(rowsOfWildcards) == 0:
                 os.system("cls")
                 print("\nThere are no wildcards in the wildcard database.")
                 error = 1
@@ -1836,6 +1914,7 @@ while True:
                 error = 1
                 continue
 
+        os.system("cls")
         if len(assignedSearches) >= 1:
             while True:
                 if databaseDecision == "w":
@@ -1855,7 +1934,7 @@ while True:
                     if len(rowsOfVariables) >= 1:
                         print(f"\nData will be pulled from the {databaseName}. Enter 'c' to change it.")
                 if databaseDecision == "v":
-                    if len(rowsOfOriginalWildcards) >= 1:
+                    if len(rowsOfWildcards) >= 1:
                         print(f"\nData will be pulled from the {databaseName}. Enter 'c' to change it.")
 
                 print("\nPress '-' to delete the last assignment, enter to continue.")
@@ -1869,7 +1948,7 @@ while True:
                             continue
                         databaseDecision = "v"
                     elif databaseDecision == "v":
-                        if len(rowsOfOriginalWildcards) == 0:
+                        if len(rowsOfWildcards) == 0:
                             print("\nThere are no wildcards in the wildcard database.")
                             continue
                         databaseDecision = "w"
@@ -1877,6 +1956,7 @@ while True:
                     with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
                         searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
                         searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
+                        searchInfo.write(f"\n\ncopyState = {copyState}")
                     continue
 
                 elif searchDecision == "-":
@@ -1892,108 +1972,128 @@ while True:
                     abortSearch = 1
                 break
 
-        if abortSearch == 1:
-            abortSearch = 0
-            continue
-
-        # Choose the directory to search the variables or wildcards.
-        os.system("cls")
-        while True:
-            print("\nEnter the full path of the directory you wish to be searched.")
-            print("Enter 'q' to exit search process.")
-            searchDirectory = input("> ").strip(" \"\'")
-            if searchDirectory == "q":
-                abortSearch = 1
-                break
-            if not os.path.exists(searchDirectory):
-                os.system("cls")
-                print("\nThere is no such directory.")
-                continue
-            break
-
-        if abortSearch == 1:
-            abortSearch = 0
-            continue
-
-        # Choose file extensions to apply the variables or wildcards.
-        os.system("cls")
-        fileExtensions = []
-        while True:
-            print("\nEnter the file extensions which will be applied to the wildcards while searching.")
-            if len(fileExtensions) > 0:
-                print(f"\nDirectory '{os.path.basename(searchDirectory)}' will be searched for:")
-                for i, extension in enumerate(fileExtensions):
-                    print(f"{i+1}. {extension} files")
-            searchedFileExtension = input("> ")
-            if searchedFileExtension == "":
-                os.system("cls")
-                print("\nEnter 'q' to end current process.")
-                continue
-            searchedFileExtension = searchedFileExtension.strip()
-            if searchedFileExtension == "-":
-                os.system("cls")
-                if len(fileExtensions) >= 1:
-                    del fileExtensions[-1]
-                    continue
-            elif searchedFileExtension == "q":
-                if len(fileExtensions) == 0:
-                    os.system("cls")
-                    print("\nAt least one extension is required.")
-                    continue
-                break
-            else:
-                fileExtensions.append(searchedFileExtension)
-
-        # Calculate the maximum number of columns.
-        maxRowLength = 0
-        if databaseDecision == "w":
-            wb = openpyxl.load_workbook(projectPath / "data" / "Wildcard Database.xlsx")
-            sheet = wb.active
-            maxRowLength = len(list(sheet.columns))
-            dataType = "wildcard"
-            wb.close()
-        elif databaseDecision == "v":
-            maxRowLength = len(max(rowsOfVariables, key=len))
-            dataType = "variable"
-
-        # Choose the column to apply extensions.
-        os.system("cls")
-        variableToApplyExtensions = 0
-        if maxRowLength == 1:
-            variableToApplyExtensions = 1
-        else:
+        if abortSearch == 0:
+            # Choose the directory to search the variables or wildcards.
+            os.system("cls")
             while True:
-                print(f"\nThere are {maxRowLength} {dataType}s in a single row.")
-                print("Apply extensions to the variables in which column?")
-                availableVariableColumns = [str(i) for i in range(1, maxRowLength + 1)]
-                variableToApplyExtensions = input("> ").strip()
-                if variableToApplyExtensions not in availableVariableColumns:
+                print("\nEnter the full path of the directory you wish to be searched.")
+                print("Enter 'q' to exit search process.")
+                searchDirectory = input("> ").strip(" \"\'")
+                if searchDirectory == "q":
+                    abortSearch = 1
+                    break
+                if not os.path.exists(searchDirectory):
                     os.system("cls")
-                    print(f"\n{variableToApplyExtensions} does not exist.")
+                    print("\nThere is no such directory.")
                     continue
-                variableToApplyExtensions = int(variableToApplyExtensions)
                 break
 
-        # Save search info.
-        assignedSearches.append([searchDirectory, fileExtensions, variableToApplyExtensions])
+        if abortSearch == 0:
+            # Choose file extensions to apply the variables or wildcards.
+            os.system("cls")
+            fileExtensions = []
+            while True:
+                print("\nEnter the file extensions which will be applied to the wildcards while searching.")
+                if len(fileExtensions) > 0:
+                    print(f"\nDirectory '{os.path.basename(searchDirectory)}' will be searched for:")
+                    for i, extension in enumerate(fileExtensions):
+                        print(f"{i+1}. {extension} files")
+                searchedFileExtension = input("> ")
+                if searchedFileExtension == "":
+                    os.system("cls")
+                    print("\nEnter 'q' to end current process.")
+                    continue
+                searchedFileExtension = searchedFileExtension.strip()
+                if searchedFileExtension == "-":
+                    os.system("cls")
+                    if len(fileExtensions) >= 1:
+                        del fileExtensions[-1]
+                        continue
+                elif searchedFileExtension == "q":
+                    if len(fileExtensions) == 0:
+                        os.system("cls")
+                        print("\nAt least one extension is required.")
+                        continue
+                    break
+                else:
+                    os.system("cls")
+                    fileExtensions.append(searchedFileExtension)
+
+            # Calculate the maximum number of columns.
+            maxRowLength = 0
+            if databaseDecision == "w":
+                wb = openpyxl.load_workbook(projectPath / "data" / "Wildcard Database.xlsx")
+                sheet = wb.active
+                maxRowLength = len(list(sheet.columns))
+                dataType = "wildcard"
+                wb.close()
+            elif databaseDecision == "v":
+                wb = openpyxl.load_workbook(projectPath / "data" / "Variable Database.xlsx")
+                sheet = wb.active
+                maxRowLength = len(list(sheet.columns))
+                dataType = "variable"
+                wb.close()
+
+            # Choose the column to apply extensions.
+            os.system("cls")
+            variableToApplyExtensions = 0
+            if maxRowLength == 1:
+                variableToApplyExtensions = 1
+            else:
+                while True:
+                    print(f"\nThere are {maxRowLength} {dataType}s in a single row.")
+                    print("Apply extensions to the variables in which column?")
+                    availableVariableColumns = [str(i) for i in range(1, maxRowLength + 1)]
+                    variableToApplyExtensions = input("> ").strip()
+                    if variableToApplyExtensions not in availableVariableColumns:
+                        os.system("cls")
+                        print(f"\n{variableToApplyExtensions} does not exist.")
+                        continue
+                    variableToApplyExtensions = int(variableToApplyExtensions)
+                    break
+            assignedSearches.append([searchDirectory, fileExtensions, variableToApplyExtensions])
+
         with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
             searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
             searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
+            searchInfo.write(f"\n\ncopyState = {copyState}")
 
         # Search & copy the files.
-        print(copyWildcardsImport.copy_wildcards(projectPathAlternative))
-        input("> ")
+        copyWildcardStatus = copyWildcardsImport.copy_wildcards(projectPathAlternative)
+        if copyWildcardStatus[1] is True:
+            print()
+            print(copyWildcardStatus[0])  # Print "Successfully copied".
+            copyState = 1
+            with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
+                searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
+                searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
+                searchInfo.write(f"\n\ncopyState = {copyState}")
+            input("> ")
+        elif copyWildcardStatus[1] is False:
+            print()
+            print(copyWildcardStatus[0])  # Print the files which could not been found.
+            copyState = 0
+            with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
+                searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
+                searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
+                searchInfo.write(f"\n\ncopyState = {copyState}")
+            input("> ")
+            continue
 
         # Adjust variables & wildcards according to the database decision.
         importlib.reload(searchImport)
         if searchImport.databaseDecision == "v":
-            variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[0]
-        else:
+            wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+            if searchImport.copyState:
+                variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[0]
+            else:
+                variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "variable")[0]
+        elif searchImport.databaseDecision == "w":
             variableDb = varDbImport.get_vars(projectPathAlternative + "\\data", "variable")[0]
-        if searchImport.databaseDecision == "w":
-            rowsOfWildcards = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[1]
-        else:
-            rowsOfWildcards = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+            if searchImport.copyState:
+                wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[1]
+            else:
+                wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
         continue
 
     elif command == "qq":

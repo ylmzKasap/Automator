@@ -32,7 +32,7 @@ allAssignments = [
     "...", "ddd", "rrr", "mmm", "dttt", "ccc", "sound",
     "v", "k", "hot", "p", "max", "w", "wRandom", "i", "web",
     "su", "sd", "h", "hc", "mr", "repeat", "repeatpattern",
-    "icon", "wild", "rfw", "l"
+    "icon", "wild", "rfw", "l", "com"
 ]
 
 allAssignmentsExplained = {
@@ -72,6 +72,7 @@ allAssignmentsExplained = {
     "repeat": "Repeat previous command",
     "repeatpattern": "Repeat specified pattern",
     "rfw": "Repeat the pattern for the rows of wildcards available",
+    "com": "Leave a comment"
     }
 
 imageCommandsExplained = {
@@ -92,7 +93,7 @@ imageCommandsExplained = {
 imageConditionalAssignments = [
     ".", "d", "r", "m", "dt", "c", "mr", "v", "k", "click",
     "hot", "p", "max", "w", "wRandom", "web", "i", "l",
-    "su", "sd", "h", "hc", "sound", "repeat", "repeatpattern"
+    "su", "sd", "h", "hc", "sound", "repeat", "repeatpattern", "com"
 ]
 
 imageConditionalAssignmentsExplained = {
@@ -125,7 +126,8 @@ imageConditionalAssignmentsExplained = {
     "hc": "Hold and click",
     "sound": "Play a sound located in sounds folder",
     "repeat": "Repeat previous command",
-    "repeatpattern": "Repeat specified pattern"
+    "repeatpattern": "Repeat specified pattern",
+    "com": "Leave a comment"
     }
 
 # For assignments which are used in key_to_action function
@@ -176,7 +178,7 @@ availableHotkeys = [
     "ctrl alt delete", "win r", "win shift s", "ctrl b",
     "ctrl u", "ctrl I",  "ctrl shift a", "shift enter",
     "ctrl shift s", "alt f4", "ctrl shift t", "ctrl r",
-    "ctrl shift c", "ctrl shift o", "win alt g"
+    "ctrl shift c", "ctrl shift o", "win alt g", "ctrl p"
 ]
 
 keyboardKeysExamples = [
@@ -248,7 +250,8 @@ readableCommands = {
     "end_repeat_commands_for_wildcards": "--End repeating for wildcards--",
     "launch": "Launch",
     "search_files": "Search '{}' for",
-    "blind_click": "Click wherever the cursor is"
+    "blind_click": "Click wherever the cursor is",
+    "comment": "# {} #"
 }
 
 
@@ -277,7 +280,7 @@ def format_commands(command):
         waitOrPass = ""
         if command[2] == "wait":
             waitOrPass = " and wait until it ends"
-        return readableCommands[command[0]] + f" '{os.path.basename(command[1])}'{waitOrPass}"
+        return readableCommands[command[0]] + f" '{command[1]}'{waitOrPass}"
 
     elif command[0] == "write_text":
         return readableCommands[command[0]] + f" '{command[1]}'"
@@ -402,4 +405,9 @@ def format_commands(command):
         return (
                 readableCommands[command[0]].format(os.path.basename(command[1]))
                 + f" {', '.join(command[2])} files and copy all."
+        )
+
+    elif command[0] == "comment":
+        return (
+                readableCommands[command[0]].format(os.path.basename(command[1]))
         )

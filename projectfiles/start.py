@@ -1,5 +1,6 @@
 import importlib
 import os
+from pathlib import Path
 import random
 import sys
 import time
@@ -37,11 +38,11 @@ def incorrect_color(point):
             continue
 
 
-def file_not_found(wait, picture):
+def file_not_found(wait, image):
     waitTime = wait
     for i in range(waitTime):
         os.system("cls")
-        print(f"\n{os.path.basename(picture)}, is not in 'pictures' folder.")
+        print(f"\n{image} is not in 'images' folder.")
         print(f"\nNew attempt in {waitTime} seconds.")
         waitTime -= 1
         time.sleep(1)
@@ -64,22 +65,26 @@ skipCommands = 0
 def run_commands(actions, aTime, *args):
     if __name__ == "main":
         if searchinfo.databaseDecision == "v":
-            variableDb = varsettings.get_vars(f".\\data", "search")[0]
-        else:
-            variableDb = varsettings.get_vars(f".\\data", "variable")[0]
+            if searchinfo.copyState:
+                variableDb = varsettings.get_vars(f".\\data", "search")[0]
+            else:
+                variableDb = varsettings.get_vars(f".\\data", "variable")[0]
         if searchinfo.databaseDecision == "w":
-            rowsOfWildcards = varsettings.get_vars(f".\\data", "search")[1]
-        else:
-            rowsOfWildcards = varsettings.get_vars(f".\\data", "wildcard")[1]
+            if searchinfo.copyState:
+                rowsOfWildcards = varsettings.get_vars(f".\\data", "search")[1]
+            else:
+                rowsOfWildcards = varsettings.get_vars(f".\\data", "wildcard")[1]
     else:
         if searchinfo.databaseDecision == "v":
-            variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[0]
-        else:
-            variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
+            if searchinfo.copyState:
+                variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[0]
+            else:
+                variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
         if searchinfo.databaseDecision == "w":
-            rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[1]
-        else:
-            rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
+            if searchinfo.copyState:
+                rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[1]
+            else:
+                rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
 
     columnIndex = 0
     for index, point in enumerate(actions):
@@ -94,7 +99,6 @@ def run_commands(actions, aTime, *args):
             pyautogui.click(point[1], duration=aTime)
         elif point[0] == "click_color":
             while True:
-                time.sleep(0.2)
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                     pyautogui.click(point[1], duration=aTime)
                     break
@@ -117,7 +121,6 @@ def run_commands(actions, aTime, *args):
         elif point[0] == "move_cursor":
             pyautogui.moveTo(point[1], duration=aTime)
         elif point[0] == "move_cursor_color":
-            time.sleep(0.2)
             while True:
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                     pyautogui.moveTo(point[1], duration=aTime)
@@ -142,7 +145,6 @@ def run_commands(actions, aTime, *args):
             pyautogui.doubleClick(point[1], duration=aTime)
         elif point[0] == "double_click_color":
             while True:
-                time.sleep(0.2)
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                     pyautogui.doubleClick(point[1], duration=aTime)
                     break
@@ -166,7 +168,6 @@ def run_commands(actions, aTime, *args):
             pyautogui.rightClick(point[1], duration=aTime)
         elif point[0] == "right_click_color":
             while True:
-                time.sleep(0.2)
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                     pyautogui.rightClick(point[1], duration=aTime)
                     break
@@ -190,7 +191,6 @@ def run_commands(actions, aTime, *args):
             pyautogui.middleClick(point[1], duration=aTime)
         elif point[0] == "middle_click_color":
             while True:
-                time.sleep(0.2)
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                     pyautogui.middleClick(point[1], duration=aTime)
                     break
@@ -211,10 +211,8 @@ def run_commands(actions, aTime, *args):
                 continue
 
         elif point[0] == "drag_to":
-            time.sleep(0.2)
             pyautogui.dragTo(point[1], duration=aTime)
         elif point[0] == "drag_to_color":
-            time.sleep(0.2)
             while True:
                 if pyautogui.pixelMatchesColor(point[1][0], point[1][1], point[2]):
                     pyautogui.dragTo(point[1], duration=aTime)
@@ -236,141 +234,253 @@ def run_commands(actions, aTime, *args):
                 continue
 
         elif point[0] == "scroll_up":
-            time.sleep(0.5)
+            time.sleep(0.2)
             for i in range(3):
                 pyautogui.scroll(500)
         elif point[0] == "scroll_down":
-            time.sleep(0.5)
+            time.sleep(0.2)
             for i in range(3):
                 pyautogui.scroll(-500)
 
+        elif point[0] == "comment":
+            continue
+
         elif point[0] == "image_conditional":
             while True:
-                try:
-                    if point[3] == "if":
-                        if pyautogui.locateOnScreen(point[1]) is not None:
-                            run_commands(point[2], aTime)
+                if __name__ == "__main__":
+                    try:
+                        if point[3] == "if":
+                            if pyautogui.locateOnScreen(str(Path("images", point[1]))) is not None:
+                                run_commands(point[2], aTime)
+                                break
+                            else:
+                                break
+                        elif point[3] == "if not":
+                            if pyautogui.locateOnScreen(str(Path("images", point[1]))) is None:
+                                run_commands(point[2], aTime)
+                                break
+                            else:
+                                break
+                        elif point[3] == "while":
+                            while pyautogui.locateOnScreen(str(Path("images", point[1]))) is not None:
+                                run_commands(point[2], aTime)
                             break
-                        else:
+                        elif point[3] == "while not":
+                            while pyautogui.locateOnScreen(str(Path("images", point[1]))) is None:
+                                run_commands(point[2], aTime)
                             break
-                    elif point[3] == "if not":
-                        if pyautogui.locateOnScreen(point[1]) is None:
-                            run_commands(point[2], aTime)
-                        else:
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        if point[3] == "if":
+                            if pyautogui.locateOnScreen(
+                                    str(Path(projectinfo.projectPath, "images", point[1]))
+                                    ) is not None:
+                                run_commands(point[2], aTime)
+                                break
+                            else:
+                                break
+                        elif point[3] == "if not":
+                            if pyautogui.locateOnScreen(
+                                    str(Path(projectinfo.projectPath, "images", point[1]))
+                                    ) is None:
+                                run_commands(point[2], aTime)
+                                break
+                            else:
+                                break
+                        elif point[3] == "while":
+                            while pyautogui.locateOnScreen(
+                                    str(Path(projectinfo.projectPath, "images", point[1]))
+                                    ) is not None:
+                                run_commands(point[2], aTime)
                             break
-                    elif point[3] == "while":
-                        while pyautogui.locateOnScreen(point[1]) is not None:
-                            run_commands(point[2], aTime)
-                        break
-                    elif point[3] == "while not":
-                        while pyautogui.locateOnScreen(point[1]) is None:
-                            run_commands(point[2], aTime)
-                        break
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                        elif point[3] == "while not":
+                            while pyautogui.locateOnScreen(
+                                    str(Path(projectinfo.projectPath, "images", point[1]))
+                                    ) is None:
+                                run_commands(point[2], aTime)
+                            break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "click_image":
-            time.sleep(0.5)
             while True:
-                try:
-                    pyautogui.click(point[1], duration=aTime)
-                    break
-                except TypeError:
-                    image_not_found(5)
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.click(str(Path("images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.click(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "click_image_else_pass":
             while True:
-                try:
-                    pyautogui.click(point[1], duration=aTime)
-                    for i in range(1, point[2]):
-                        pyautogui.click(duration=0)
-                    break
-                except TypeError:
-                    break
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.click(str(Path("images", point[1])), duration=aTime)
+                        for i in range(1, point[2]):
+                            pyautogui.click(duration=0)
+                        break
+                    except TypeError:
+                        break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.click(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                        for i in range(1, point[2]):
+                            pyautogui.click(duration=0)
+                        break
+                    except TypeError:
+                        break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "move_cursor_on_image":
-            time.sleep(0.5)
             while True:
-                try:
-                    pyautogui.moveTo(point[1], duration=aTime)
-                    break
-                except TypeError:
-                    image_not_found(5)
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.moveTo(str(Path("images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.moveTo(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "cursor_on_image_else_pass":
             while True:
-                try:
-                    pyautogui.moveTo(point[1], duration=aTime)
-                except TypeError:
-                    break
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.moveTo(str(Path("images", point[1])), duration=aTime)
+                    except TypeError:
+                        break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.moveTo(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                    except TypeError:
+                        break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "double_click_image":
-            time.sleep(0.5)
             while True:
-                try:
-                    pyautogui.doubleClick(point[1], duration=aTime)
-                    break
-                except TypeError:
-                    image_not_found(5)
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.doubleClick(str(Path("images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.doubleClick(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "double_click_image_else_pass":
             while True:
-                try:
-                    pyautogui.doubleClick(point[1], duration=aTime)
-                except TypeError:
-                    break
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.doubleClick(str(Path("images", point[1])), duration=aTime)
+                    except TypeError:
+                        break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.doubleClick(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                    except TypeError:
+                        break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "right_click_image":
-            time.sleep(0.5)
             while True:
-                try:
-                    pyautogui.rightClick(point[1], duration=aTime)
-                    break
-                except TypeError:
-                    image_not_found(5)
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.rightClick(str(Path("images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.rightClick(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "right_click_image_else_pass":
             while True:
-                try:
-                    pyautogui.rightClick(point[1], duration=aTime)
-                except TypeError:
-                    break
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.rightClick(str(Path("images", point[1])), duration=aTime)
+                    except TypeError:
+                        break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.rightClick(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                    except TypeError:
+                        break
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "drag_to_image":
-            time.sleep(0.5)
             while True:
-                try:
-                    pyautogui.dragTo(point[1], duration=aTime)
-                    break
-                except TypeError:
-                    image_not_found(5)
-                except FileNotFoundError:
-                    file_not_found(10, point[1])
+                if __name__ == "__main__":
+                    try:
+                        pyautogui.dragTo(str(Path("images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
+                else:
+                    try:
+                        pyautogui.dragTo(str(Path(projectinfo.projectPath, "images", point[1])), duration=aTime)
+                        break
+                    except TypeError:
+                        image_not_found(5)
+                    except FileNotFoundError:
+                        file_not_found(10, point[1])
             continue
 
         elif point[0] == "blind_click":
@@ -378,19 +488,23 @@ def run_commands(actions, aTime, *args):
             continue
 
         elif point[0] == "wait":
-            try:
-                waitingTime = point[1]
-                for i in range(waitingTime, 0, -1):
-                    os.system("cls")
-                    if waitingTime == 1:
-                        timeExpression = "second"
-                    else:
-                        timeExpression = "seconds"
-                    print(f"\n{waitingTime} {timeExpression} left. Waiting...")
-                    time.sleep(1)
-                    waitingTime -= 1
-            except KeyboardInterrupt:
-                continue
+            waitingTime = point[1]
+            if int(waitingTime) == waitingTime:  # If it is not a float value
+                waitingTime = int(waitingTime)
+                try:
+                    for i in range(waitingTime, 0, -1):
+                        os.system("cls")
+                        if waitingTime == 1:
+                            timeExpression = "second"
+                        else:
+                            timeExpression = "seconds"
+                        print(f"\n{waitingTime} {timeExpression} left. Waiting...")
+                        time.sleep(1)
+                        waitingTime -= 1
+                except KeyboardInterrupt:
+                    continue
+            else:
+                time.sleep(waitingTime)
         elif point[0] == "wait_random":
             randomWaitingTime = random.randint(point[1], point[2])
             try:
@@ -418,16 +532,13 @@ def run_commands(actions, aTime, *args):
 
         elif point[0] == "write_text":
             pyperclip.copy(point[1])
-            time.sleep(0.5)
             pyautogui.hotkey("ctrl", "v")
 
         elif point[0] == "hotkey":
             separatedHotkey = point[1].split()
-            time.sleep(0.1)
             pyautogui.hotkey(*separatedHotkey)
 
         elif point[0] == "press_key":
-            time.sleep(0.1)
             pyautogui.press(point[1])
 
         elif point[0] == "play_sound":
@@ -435,13 +546,16 @@ def run_commands(actions, aTime, *args):
             mixer.init()
             while True:
                 try:
-                    mixer.music.load(point[1])
+                    if __name__ == "__main__":
+                        mixer.music.load(Path("sounds", point[1]))
+                    else:
+                        mixer.music.load(Path(projectinfo.projectPath, "sounds", point[1]))
                     break
                 except error:
                     os.system("cls")
                     print(
                         f"\n'{point[1]}' is not found."
-                        f"\n\nPlease make sure that '{os.path.basename(point[1])}' is in the directory above."
+                        f"\n\nPlease make sure that '{point[1]}' is in the directory above."
                         "\nPress enter to try again, press some other key to skip this step."
                     )
                     decision = input("> ")
@@ -468,7 +582,6 @@ def run_commands(actions, aTime, *args):
         elif point[0] == "write_variable":
             try:
                 pyperclip.copy(variableDb[point[1]])
-                time.sleep(0.5)
                 pyautogui.hotkey("ctrl", "v")
             except KeyError:
                 keyNumber = point[1].strip('v')
@@ -550,7 +663,7 @@ def run_commands(actions, aTime, *args):
             wildColumn += columnIndex
             try:
                 pyperclip.copy(str(rowsOfWildcards[wildRow][wildColumn]))
-                time.sleep(0.5)
+                time.sleep(0.1)
                 pyautogui.hotkey("ctrl", "v")
             except IndexError:
                 break
@@ -568,10 +681,11 @@ def run_commands(actions, aTime, *args):
 
 
 if __name__ == "__main__":
-    fileCondition = copywildcards.copy_wildcards(projectinfo.projectPath)
-    if fileCondition != "Files are successfully copied.":
-        print(fileCondition)
-        input("> ")
-        sys.exit()
+    if searchinfo.databaseDecision is True:
+        fileCondition = copywildcards.copy_wildcards(projectinfo.projectPath)
+        if fileCondition[1] is False:
+            print(fileCondition[0])
+            input("> ")
+            sys.exit()
     for command in savedProject.allCommandsSave:
         run_commands(command, projectinfo.actionTime)

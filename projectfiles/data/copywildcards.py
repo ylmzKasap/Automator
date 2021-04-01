@@ -77,7 +77,7 @@ def copy_wildcards(projectPath):
             textBlock += f"\n\n{k} files:"
             for wildcard in v:
                 textBlock += f"\n{wildcard}"
-        return textBlock
+        return textBlock, False
 
     # Delete old files and copy new files
     delete_folder_contents(f"{projectPath}\\search")
@@ -111,4 +111,4 @@ def copy_wildcards(projectPath):
                 columnIndex += 1
 
     wb.save(f"{projectPath}\\data\\Searched Database.xlsx")
-    return "Files are successfully copied."
+    return "Files are successfully copied.", True
