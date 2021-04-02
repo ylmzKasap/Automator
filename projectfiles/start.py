@@ -65,22 +65,26 @@ skipCommands = 0
 def run_commands(actions, aTime, *args):
     if __name__ == "main":
         if searchinfo.databaseDecision == "v":
+            rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
             if searchinfo.copyState:
                 variableDb = varsettings.get_vars(f".\\data", "search")[0]
             else:
                 variableDb = varsettings.get_vars(f".\\data", "variable")[0]
-        if searchinfo.databaseDecision == "w":
+        elif searchinfo.databaseDecision == "w":
+            variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
             if searchinfo.copyState:
                 rowsOfWildcards = varsettings.get_vars(f".\\data", "search")[1]
             else:
                 rowsOfWildcards = varsettings.get_vars(f".\\data", "wildcard")[1]
     else:
         if searchinfo.databaseDecision == "v":
+            rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
             if searchinfo.copyState:
                 variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[0]
             else:
                 variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
-        if searchinfo.databaseDecision == "w":
+        elif searchinfo.databaseDecision == "w":
+            variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
             if searchinfo.copyState:
                 rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[1]
             else:
@@ -681,7 +685,7 @@ def run_commands(actions, aTime, *args):
 
 
 if __name__ == "__main__":
-    if searchinfo.databaseDecision is True:
+    if searchinfo.databaseDecision == "w" or searchinfo.databaseDecision == "v":
         fileCondition = copywildcards.copy_wildcards(projectinfo.projectPath)
         if fileCondition[1] is False:
             print(fileCondition[0])

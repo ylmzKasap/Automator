@@ -1728,7 +1728,7 @@ while True:
 
             if not Path(projectPathAlternative, "images", ssName).exists():
                 os.system("cls")
-                print(f"\nThere is no image file called {ssName} in the 'images' folder.")
+                print(f"\nThere is no image file called '{ssName}' in the 'images' folder.")
                 continue
             break
 
@@ -1804,7 +1804,7 @@ while True:
 
                 if not Path(projectPathAlternative, "images", imageName).exists():
                     os.system("cls")
-                    print(f"\nThere is no image file called {imageName} in the 'images' folder.")
+                    print(f"\nThere is no image file called '{imageName}' in the 'images' folder.")
                     continue
                 break
 

@@ -174,7 +174,7 @@ hotkeyExamples = [
 availableHotkeys = [
     "ctrl c", "ctrl v",  "ctrl x", "ctrl a", "ctrl z",
     "alt tab", "win d", "ctrl w", "ctrl n", "ctrl s",
-    "ctrl shift n", "win .", "win b", "win m",
+    "ctrl shift n", "win .", "win b", "win m", "ctrl enter",
     "ctrl alt delete", "win r", "win shift s", "ctrl b",
     "ctrl u", "ctrl I",  "ctrl shift a", "shift enter",
     "ctrl shift s", "alt f4", "ctrl shift t", "ctrl r",
