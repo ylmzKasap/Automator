@@ -873,6 +873,8 @@ while True:
                 wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "search")[1]
             else:
                 wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
+        else:
+            wildcardDb = varDbImport.get_vars(projectPathAlternative + "\\data", "wildcard")[1]
 
     elif command == "com":
         os.system("cls")

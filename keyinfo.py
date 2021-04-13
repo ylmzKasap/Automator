@@ -5,6 +5,7 @@ helpMenu = {
     "epi": "List all episodes",
     "name": "Rename an episode",
     "save": "Save the episode and move next one",
+    "saves": "Save the episode and stay",
     "go": "Go to a specific episode",
     "copy": "Copy the content of an episode to the current one",
     "del": "Delete a specific episode",
@@ -49,7 +50,7 @@ allAssignmentsExplained = {
     "ddd": "Double clicks if the colors match, if not, continues like nothing happened.",
 
     "\nKeyboard Commands": "",
-    "v": "Assign a value",
+    "v": "Assign a variable",
     "k": "Assign a text",
     "hot": "Assign a hotkey",
     "p": "Assign a key to press",

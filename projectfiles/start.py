@@ -34,7 +34,6 @@ def incorrect_color(point):
                 os.system("cls")
             break
         except OSError:
-            time.sleep(0.2)
             continue
 
 
@@ -76,6 +75,9 @@ def run_commands(actions, aTime, *args):
                 rowsOfWildcards = varsettings.get_vars(f".\\data", "search")[1]
             else:
                 rowsOfWildcards = varsettings.get_vars(f".\\data", "wildcard")[1]
+        else:
+            variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
+            rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
     else:
         if searchinfo.databaseDecision == "v":
             rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
@@ -89,6 +91,9 @@ def run_commands(actions, aTime, *args):
                 rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "search")[1]
             else:
                 rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
+        else:
+            variableDb = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "variable")[0]
+            rowsOfWildcards = varsettings.get_vars(f"{projectinfo.projectPath}\\data", "wildcard")[1]
 
     columnIndex = 0
     for index, point in enumerate(actions):
@@ -238,11 +243,9 @@ def run_commands(actions, aTime, *args):
                 continue
 
         elif point[0] == "scroll_up":
-            time.sleep(0.2)
             for i in range(3):
                 pyautogui.scroll(500)
         elif point[0] == "scroll_down":
-            time.sleep(0.2)
             for i in range(3):
                 pyautogui.scroll(-500)
 
@@ -525,7 +528,6 @@ def run_commands(actions, aTime, *args):
                 continue
 
         elif point[0] == "maximize_window":
-            time.sleep(0.2)
             activeWindow = pyautogui.getActiveWindow()
             activeWindow.maximize()
 
