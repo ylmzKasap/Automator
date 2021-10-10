@@ -12,6 +12,7 @@ helpMenu = {
     "insep": "Insert an episode after a specific episode",
     "runep": "Run all instructions from a specified episode to the current one",
     "run": "Run current episode",
+    "runF": "Run all commands starting from a particular command",
     "rep": "Replace a command",
     "ins": "Insert a new command after a specified one",
     "-": "Delete last command",
@@ -33,7 +34,7 @@ allAssignments = [
     "...", "ddd", "rrr", "mmm", "dttt", "ccc", "sound",
     "v", "k", "hot", "p", "max", "w", "wRandom", "i", "web",
     "su", "sd", "h", "hc", "mr", "repeat", "repeatpattern",
-    "icon", "wild", "rfw", "l", "com"
+    "icon", "wild", "rfw", "l", "com", "hk"
 ]
 
 allAssignmentsExplained = {
@@ -52,6 +53,7 @@ allAssignmentsExplained = {
     "\nKeyboard Commands": "",
     "v": "Assign a variable",
     "k": "Assign a text",
+    "hk": "Hold a key",
     "hot": "Assign a hotkey",
     "p": "Assign a key to press",
     "wild": "Assign a wildcard",
@@ -73,6 +75,7 @@ allAssignmentsExplained = {
     "repeat": "Repeat previous command",
     "repeatpattern": "Repeat specified pattern",
     "rfw": "Repeat the pattern for the rows of wildcards available",
+    "split": "Split the cells of wildcard database.",
     "com": "Leave a comment"
     }
 
@@ -93,7 +96,7 @@ imageCommandsExplained = {
 
 imageConditionalAssignments = [
     ".", "d", "r", "m", "dt", "c", "mr", "v", "k", "click",
-    "hot", "p", "max", "w", "wRandom", "web", "i", "l",
+    "hot", "p", "max", "w", "wRandom", "web", "i", "l", "hk",
     "su", "sd", "h", "hc", "sound", "repeat", "repeatpattern", "com"
 ]
 
@@ -110,6 +113,7 @@ imageConditionalAssignmentsExplained = {
     "\nKeyboard Commands": "",
     "v": "Assign a variable",
     "k": "Assign a text",
+    "hk": "Hold a key",
     "hot": "Assign a hotkey",
     "p": "Assign a key to press",
 
@@ -235,6 +239,7 @@ readableCommands = {
     "wait_random": "Wait for random seconds between {} and {}",
     "maximize_window": "Maximize current window",
     "hold_mouse": "Hold left click",
+    "hold_key": "Hold '{}' key for {} seconds",
     "write_text": "Type",
     "hotkey": "Press",
     "press_key": "Press",
@@ -293,6 +298,8 @@ def format_commands(command):
         return readableCommands[command[0]] + f" {command[1]}"
     elif command[0] == "hold_click":
         return readableCommands[command[0]].format(f"'{command[1]}'", ', '.join(str(i) for i in command[2]))
+    elif command[0] == "hold_key":
+        return readableCommands[command[0]].format(command[1], command[2])
 
     elif command[0] == "repeat_previous":
         if command[1] == "infinite":

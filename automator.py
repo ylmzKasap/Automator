@@ -14,7 +14,6 @@ import pyautogui
 
 import keyinfo
 
-
 ACTION_DURATION = 0.65  # Action time for each command
 
 originalScreenSize = (pyautogui.size().width, pyautogui.size().height)
@@ -183,6 +182,15 @@ def check_recursion(commandsList):
             return False
 
 
+def write_search_info(searchObj):
+    searchObj.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
+    searchObj.write(f"\ndatabaseDecision = '{databaseDecision}'")
+    searchObj.write(f"\ncopyState = {copyState}")
+    searchObj.write(f"\nsplit_cells = {splitCells}")
+    searchObj.write(f"\nsplitPref = {[splitRange, splitRepeat]}")
+    searchObj.write(f"\nskip_cells = {skip_cells}")
+
+
 def print_readable_commands(commandsList):
     for index, command in enumerate(commandsList):
         print(f"{index+1}. {keyinfo.format_commands(command)}")
@@ -213,6 +221,7 @@ except TypeError:
     input("> ")
     sys.exit()
 
+automatorPath = os.getcwd()
 projectPathAlternative = f"{os.getcwd()}\\projects\\{projectName}"
 
 # Create project files for the first time.
@@ -229,10 +238,6 @@ if not projectPath.exists():
         pass
     with open(projectPath / "data" / "__init__.py", "w", encoding="utf-8") as dataPackage:
         pass
-    with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
-        searchInfo.write("assignedSearches = []")
-        searchInfo.write(f"\n\ndatabaseDecision = ''")
-        searchInfo.write(f"\n\ncopyState = 0")
     with open(f"{projectPath}\\projectinfo.py", "w", encoding="utf-8") as projectInfo:
         projectInfo.write(f"projectName = '{projectName}'\n")
         projectInfo.write(f"projectPath = r'{projectPathAlternative}'\n")
@@ -240,10 +245,18 @@ if not projectPath.exists():
     # Copy project files to project path.
     shutil.copy(f".\\projectfiles\\start.py", projectPathAlternative)
     shutil.copy(f".\\projectfiles\\data\\varsettings.py", (projectPathAlternative + "\\data"))
+    shutil.copy(f".\\projectfiles\\data\\split_rows.py", (projectPathAlternative + "\\data"))
     shutil.copy(f".\\projectfiles\\data\\copywildcards.py", (projectPathAlternative + "\\data"))
+    shutil.copy(f".\\projectfiles\\data\\searchinfo.py", (projectPathAlternative + "\\data"))
 
 searchImport = importlib.import_module(f"projects.{projectName}.data.searchinfo")
+assignedSearches = searchImport.assignedSearches
+databaseDecision = searchImport.databaseDecision
 copyState = searchImport.copyState
+splitCells = searchImport.split_cells
+splitRange = searchImport.splitPref[0]
+splitRepeat = searchImport.splitPref[1]
+skip_cells = searchImport.skip_cells
 
 # Import the variables.
 varDbImport = importlib.import_module(f"projects.{projectName}.data.varsettings")
@@ -346,6 +359,60 @@ while True:
             continue
         continue
 
+    if command == "split":
+        os.system("cls")
+        if searchImport.databaseDecision != "w":
+            print("\nWildcard database is not selected.")
+            print("\nSplit cells function only works with wildcards.")
+            error = 1
+            continue
+
+        while True:
+            print("\nSplit the rows in groups of...")
+            splitRange = input("> ").strip()
+            try:
+                splitRange = int(splitRange)
+            except ValueError:
+                os.system("cls")
+                print("\nEnter a number.")
+                continue
+            if splitRange <= 0:
+                print("\nEnter a positive number.")
+                continue
+            break
+        os.system("cls")
+        while True:
+            print("\nRepeat the split groups ... times for each row.")
+            splitRepeat = input("> ").strip()
+            try:
+                splitRepeat = int(splitRepeat)
+            except ValueError:
+                os.system("cls")
+                print("\nEnter a number.")
+                continue
+            if splitRepeat <= 0:
+                print("\nEnter a positive number.")
+                continue
+            break
+        os.system("cls")
+        while True:
+            print("\nGroup the same wildcard types together?")
+            print("Enter 'y' to group, 'n' to not group, or press enter to leave the database as it is.")
+            skipPref = input("> ").strip().lower()
+            if skipPref not in ["y", "n", ""]:
+                os.system("cls")
+                continue
+            if skipPref == "y":
+                skip_cells = True
+            elif skipPref == "n":
+                skip_cells = False
+            break
+
+        splitCells = True
+        with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
+            write_search_info(searchInfo)
+        command = "sc"
+
     if command == "sc":
         if searchImport.databaseDecision == "":
             os.system("cls")
@@ -355,9 +422,7 @@ while True:
             continue
 
         with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
-            searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
-            searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
-            searchInfo.write(f"\n\ncopyState = {copyState}")
+            write_search_info(searchInfo)
 
         copyWildcardStatus = copyWildcardsImport.copy_wildcards(projectPathAlternative)
         if copyWildcardStatus[1] is True:
@@ -365,18 +430,14 @@ while True:
             print(copyWildcardStatus[0])
             copyState = 1
             with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
-                searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
-                searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
-                searchInfo.write(f"\n\ncopyState = {copyState}")
+                write_search_info(searchInfo)
             input("> ")
         elif copyWildcardStatus[1] is False:
             print()
             print(copyWildcardStatus[0])
             copyState = 0
             with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
-                searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
-                searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
-                searchInfo.write(f"\n\ncopyState = {copyState}")
+                write_search_info(searchInfo)
             input("> ")
             continue
 
@@ -539,6 +600,7 @@ while True:
 
     if command == "run":
         print("\nThe episode will run in 3 seconds.")
+        os.chdir(projectPathAlternative)
         time.sleep(3)
         try:
             run_commands(commands, ACTION_DURATION)
@@ -546,6 +608,41 @@ while True:
             pass
         except KeyboardInterrupt:
             pass
+        os.chdir(automatorPath)
+        continue
+
+    if command == "runF":
+        os.system("cls")
+        if len(commands) <= 1:
+            print("\nThere aren't many commands to start running from...")
+            error = 1
+            continue
+        print("\nRun the commands starting from which command?")
+        print(f"There are {len(commands)} commands in total.")
+        while True:
+            startRunning = input("> ").strip()
+            try:
+                startRunning = int(startRunning)
+            except ValueError:
+                os.system("cls")
+                print("\nEnter a number")
+                continue
+            if startRunning < 1 or startRunning > len(commands):
+                os.system("cls")
+                print(f"\nEnter a number between 1 and {len(commands)}.")
+                continue
+            break
+        os.system("cls")
+        print("\nThe commands will run in 3 seconds.")
+        os.chdir(projectPathAlternative)
+        time.sleep(3)
+        try:
+            run_commands(commands[startRunning-1:], ACTION_DURATION)
+        except pyautogui.FailSafeException:
+            pass
+        except KeyboardInterrupt:
+            pass
+        os.chdir(automatorPath)
         continue
 
     if command == "runep":
@@ -581,6 +678,7 @@ while True:
         runEpisode = int(runEpisode)
         print(f"\nAll commands from episode {runEpisode} to current episode will run in 3 seconds.")
         time.sleep(3)
+        os.chdir(projectPathAlternative)
         try:
             for permittedCommands in allCommands[runEpisode-1:episode]:
                 run_commands(permittedCommands, ACTION_DURATION)
@@ -593,6 +691,7 @@ while True:
             pass
         except KeyboardInterrupt:
             pass
+        os.chdir(automatorPath)
         continue
 
     if command == "save":
@@ -1042,6 +1141,48 @@ while True:
         commands[turn-1] = ["hold_click"]
         commands[turn-1].append(holdKey)
         commands[turn-1].append(list((currentPos.x, currentPos.y)))
+        if changeInPlace == 1:
+            turn = len(commands) + 1
+            changeInPlace = 0
+            continue
+        turn += 1
+        continue
+
+    elif command == "hk":
+        os.system("cls")
+        print("\nEnter a key to hold.")
+        holdKey = input("> ").strip()
+        os.system("cls")
+        while True:
+            print(f"\nHold the '{holdKey}' for how many seconds?")
+            holdKeyWait = input("> ").strip()
+            try:
+                holdKeyWait = float(holdKeyWait)
+                if holdKeyWait <= 0:
+                    os.system("cls")
+                    print("\nEnter a positive value.")
+                    continue
+                break
+            except ValueError:
+                os.system("cls")
+                print("\nEnter a number.")
+        if imageConditional == 1:
+            imageConditionalCommands.append(["hold_key", holdKey, holdKeyWait])
+            command = "icon"
+            continue
+        if insertionInPlace == 1:
+            commands.insert(turn-1, [])
+            commands[turn-1] = ["hold_key"]
+            commands[turn-1].append(holdKey)
+            commands[turn-1].append(holdKeyWait)
+            turn = len(commands) + 1
+            insertionInPlace = 0
+            continue
+        if changeInPlace == 0:
+            commands.append([])
+        commands[turn-1] = ["hold_key"]
+        commands[turn-1].append(holdKey)
+        commands[turn - 1].append(holdKeyWait)
         if changeInPlace == 1:
             turn = len(commands) + 1
             changeInPlace = 0
@@ -1541,8 +1682,9 @@ while True:
         abortLaunch = 0
         while True:
             print("\nEnter the full path of the file which will be launched.")
+            os.chdir(projectPathAlternative)
             launchFilePath = input("> ").strip()
-            launchFilePath = launchFilePath.strip("\"\'")
+            launchFilePath = launchFilePath.strip("\"\'").replace('/', '\\')
             if launchFilePath == "q":
                 abortLaunch = 1
                 break
@@ -1552,6 +1694,7 @@ while True:
                 continue
             break
 
+        os.chdir(automatorPath)
         if abortLaunch == 1:
             abortLaunch = 0
             continue
@@ -1956,9 +2099,7 @@ while True:
                         databaseDecision = "w"
 
                     with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
-                        searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
-                        searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
-                        searchInfo.write(f"\n\ncopyState = {copyState}")
+                        write_search_info(searchInfo)
                     continue
 
                 elif searchDecision == "-":
@@ -2056,9 +2197,7 @@ while True:
             assignedSearches.append([searchDirectory, fileExtensions, variableToApplyExtensions])
 
         with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
-            searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
-            searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
-            searchInfo.write(f"\n\ncopyState = {copyState}")
+            write_search_info(searchInfo)
 
         # Search & copy the files.
         copyWildcardStatus = copyWildcardsImport.copy_wildcards(projectPathAlternative)
@@ -2067,18 +2206,14 @@ while True:
             print(copyWildcardStatus[0])  # Print "Successfully copied".
             copyState = 1
             with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
-                searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
-                searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
-                searchInfo.write(f"\n\ncopyState = {copyState}")
+                write_search_info(searchInfo)
             input("> ")
         elif copyWildcardStatus[1] is False:
             print()
             print(copyWildcardStatus[0])  # Print the files which could not been found.
             copyState = 0
             with open(projectPath / "data" / "searchinfo.py", "w", encoding="utf-8") as searchInfo:
-                searchInfo.write(f"assignedSearches = {pprint.pformat(assignedSearches)}")
-                searchInfo.write(f"\n\ndatabaseDecision = '{databaseDecision}'")
-                searchInfo.write(f"\n\ncopyState = {copyState}")
+                write_search_info(searchInfo)
             input("> ")
             continue
 

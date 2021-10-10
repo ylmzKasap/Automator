@@ -5,6 +5,7 @@ import os
 import openpyxl
 
 from . import searchinfo
+from . import split_rows
 
 
 def delete_folder_contents(folder):
@@ -110,5 +111,11 @@ def copy_wildcards(projectPath):
             while columnIndex in occupiedColumns:
                 columnIndex += 1
 
-    wb.save(f"{projectPath}\\data\\Searched Database.xlsx")
+    if searchinfo.split_cells:
+        wb = split_rows.split_rows(
+            wb, searchinfo.splitPref[0], searchinfo.splitPref[1])
+    try:
+        wb.save(f"{projectPath}\\data\\Searched Database.xlsx")
+    except PermissionError:
+        return "File couldn't been saved is it is already open.", False
     return "Files are successfully copied.", True

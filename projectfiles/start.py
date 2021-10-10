@@ -547,6 +547,11 @@ def run_commands(actions, aTime, *args):
         elif point[0] == "press_key":
             pyautogui.press(point[1])
 
+        elif point[0] == "hold_key":
+            start = time.time()
+            while time.time() - start < point[2]:
+                pyautogui.press(point[1])
+
         elif point[0] == "play_sound":
             abortSound = 0
             mixer.init()
